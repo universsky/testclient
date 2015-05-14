@@ -1,9 +1,8 @@
-# testclient
-API Test GUI Platform
+# API Test GUI Platform
 
- - Feature List:
+# Feature List:
 
-1 - add folder node
+ - 1 - add folder node
 
 add test node - [1] add Http(s) test; [2] add socket test
 
