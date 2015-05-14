@@ -1,4 +1,4 @@
-# API Test GUI Platform
+# API Test Platform
 
 # Feature List:
 
