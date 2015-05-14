@@ -2,44 +2,61 @@
 
 # Feature List:
 
- - 1 - add folder node
+1. add folder node
+2. add test node
+ - add Http(s) test
+ - add socket test
+3. copy node
+ - batch copy node at the same folder
+ - drag & drop node in any folder
 
-add test node - [1] add Http(s) test; [2] add socket test
+4. update node
 
-copy node - [1] batch copy node at the same folder; [2] drag & drop node in any folder
+5. delete node
+ - logic delete node
+ - physical delete node
 
-update node
+6. configure test with parameterization
 
-delete node - [1] logic delete node; [2] physical delete node
+7. configure environment variable
 
-configure test with parameterization
+8. configure checkpoint
+ - string contains checkpoint
+ - regular expression checkpoint
+ - sql verification checkpoint
+ - javascript expression checkpoint
 
-configure environment variable
+9. bind initial data
+ - bind data from other test
+ - bind data from sql returned
 
-configure checkpoint - [1] string contains checkpoint; [2] regular expression checkpoint; [3] sql verification checkpoint; [4] javascript expression checkpoint
+10. output parameter setting
 
-bind initial data - [1] bind data from other test; [2] bind data from sql returned
+11. initial action for test
+ - initial other test as action
+ - initial sql language as action
 
-output parameter setting
+12. teardown action for test
+ - teardown other test as action
+ - teardown sql language as action
 
-initial action for test - [1] initial other test as action; [2] initial sql language as action
+13. execute test
 
-teardown action for test - [1] teardown other test as action; [2] teardown sql language as action
+14. execute batch test
 
-execute test
+15. view test history
 
-execute batch test
+16. running Env. accross folder
 
-view test history
+17. view charts with running metrics
+ - test result summary for current week
+ - test status distribution pie chart for current week
+ - test passed rate trend chart for current week
 
-running Env. accross folder
+18. query node with node name
 
-view charts with running metrics - [1] test result summary for current week; [2] test status distribution pie chart for current week; [3] test passed rate trend chart for current week
+19. schedule running task configuration
 
-query node with node name
+20. private/public workspace for auth user
 
-schedule running task configuration
-
-private/public workspace for auth user
-
-special string process function for test
+21. special string process function for test
