@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+	<!-- jms 连接工厂 -->
+	<bean id="connectionFactory" class="org.apache.activemq.spring.ActiveMQConnectionFactory">
+		<!-- TCP异步传输 -->
+		<property name="brokerURL" value="tcp://172.16.150.101:61616?jms.useAsyncSend=true" />
+	</bean>
+
+	<!-- 基本的bean模板 -->
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<!-- 链接工长 -->
+		<property name="connectionFactory" ref="connectionFactory" />
+		<!-- 发送模式 DeliveryMode.NON_PERSISTENT=1:非持久 -->
+		<!-- DeliveryMode.PERSISTENT=2:持久 -->
+		<property name="deliveryMode" value="1" />
+	</bean>
+	<!-- 队列的目的地描述 -->
+<!-- 	<bean id="queueDestination" class="org.apache.activemq.command.ActiveMQQueue"> -->
+<!-- 		<constructor-arg index="0" value="InterfaceTest" /> -->
+<!-- 	</bean> -->
+	 <!-- 消息订阅模式，在spring xml 里面加，这是发送的 Destination -->
+    <bean id="topicDestination" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg index="0" value="InterfaceTest"/>
+    </bean>
+</beans>
