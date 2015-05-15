@@ -5,8 +5,8 @@
 1. add folder node
 
 2. add test node
-* add Http(s) test
-* add socket test
+ * add Http(s) test
+ * add socket test
 
 3. copy node
 * batch copy node at the same folder
