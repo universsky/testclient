@@ -23,7 +23,7 @@
 ![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/配置socket测试用例.png)
 
 7. configure environment variable
- ![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/设置环境变量.png)
+ * ![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/设置环境变量.png)
 
 
 8. configure checkpoint
