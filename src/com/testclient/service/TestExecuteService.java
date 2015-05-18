@@ -1,8 +1,10 @@
-package com.testclient.service;
+package ctripwireless.testclient.service;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,40 +25,38 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.testclient.enums.ActionFileName;
-import com.testclient.enums.CheckPointResult;
-import com.testclient.enums.CheckPointType;
-import com.testclient.enums.HistoryFolderName;
-import com.testclient.enums.LoopParameterNameInForm;
-import com.testclient.enums.PreConfigType;
-import com.testclient.enums.SeperatorDefinition;
-import com.testclient.enums.TestStatus;
-import com.testclient.factory.JsonObjectMapperFactory;
-import com.testclient.httpmodel.CheckPointItem;
-import com.testclient.httpmodel.Json;
-import com.testclient.httpmodel.PreConfigItem;
-import com.testclient.httpmodel.ServerItem;
-import com.testclient.httpmodel.ServiceBoundDataItem;
-import com.testclient.httpmodel.SqlEntity;
-import com.testclient.httpmodel.TestResultItem;
-import com.testclient.model.CheckPointContianer;
-import com.testclient.model.HttpTarget;
-import com.testclient.model.InvokeRequest;
-import com.testclient.model.InvokeResponse;
-import com.testclient.model.KeyValue;
-import com.testclient.model.Parameter;
-import com.testclient.model.PreConfigContainer;
-import com.testclient.model.SocketTarget;
-import com.testclient.model.SqlQueryReturn;
-import com.testclient.utils.Auto;
-import com.testclient.utils.FileNameUtils;
-import com.testclient.utils.JdbcUtils;
-import com.testclient.utils.MyFileUtils;
-import com.testclient.utils.SocketOperationUtils;
-import com.testclient.utils.TemplateUtils;
-
 import shelper.iffixture.HTTPFacade;
+import ctripwireless.testclient.enums.ActionFileName;
+import ctripwireless.testclient.enums.CheckPointResult;
+import ctripwireless.testclient.enums.CheckPointType;
+import ctripwireless.testclient.enums.HistoryFolderName;
+import ctripwireless.testclient.enums.LoopParameterNameInForm;
+import ctripwireless.testclient.enums.PreConfigType;
+import ctripwireless.testclient.enums.SeperatorDefinition;
+import ctripwireless.testclient.enums.TestStatus;
+import ctripwireless.testclient.factory.JsonObjectMapperFactory;
+import ctripwireless.testclient.httpmodel.CheckPointItem;
+import ctripwireless.testclient.httpmodel.Json;
+import ctripwireless.testclient.httpmodel.PreConfigItem;
+import ctripwireless.testclient.httpmodel.ServerItem;
+import ctripwireless.testclient.httpmodel.ServiceBoundDataItem;
+import ctripwireless.testclient.httpmodel.SqlEntity;
+import ctripwireless.testclient.httpmodel.TestResultItem;
+import ctripwireless.testclient.model.CheckPointContianer;
+import ctripwireless.testclient.model.HttpTarget;
+import ctripwireless.testclient.model.InvokeRequest;
+import ctripwireless.testclient.model.InvokeResponse;
+import ctripwireless.testclient.model.KeyValue;
+import ctripwireless.testclient.model.Parameter;
+import ctripwireless.testclient.model.PreConfigContainer;
+import ctripwireless.testclient.model.SocketTarget;
+import ctripwireless.testclient.model.SqlQueryReturn;
+import ctripwireless.testclient.utils.Auto;
+import ctripwireless.testclient.utils.FileNameUtils;
+import ctripwireless.testclient.utils.JdbcUtils;
+import ctripwireless.testclient.utils.MyFileUtils;
+import ctripwireless.testclient.utils.SocketOperationUtils;
+import ctripwireless.testclient.utils.TemplateUtils;
 
 @Service("testExecuteService")
 public class TestExecuteService {
@@ -201,7 +201,15 @@ public class TestExecuteService {
 					item.setCheckInfo(checkInfo);
 					if(checktype.equals(CheckPointType.CheckSql)){
 						checkInfo=this.processOutputParameter(foldername, responseinfo, checkInfo);
-						addCheckPointItemsForDBVerification(foldername,testresult,checkInfo,responseinfo);
+						addCheckPointItemsForDBVerification(testresult,checkInfo,responseinfo);
+					}else if(checktype.equals(CheckPointType.CheckJsExp)){
+						String[] arr=checkInfo.split(SeperatorDefinition.checkInfoSeperator);
+						String objtext=responseinfo.replaceAll("\\n","").replaceAll("\\r","");
+						objtext=StringUtils.substringAfter(objtext, arr[0]);
+						if(!arr[1].isEmpty()){
+							objtext=StringUtils.substringBefore(objtext, arr[1]);
+						}
+						addCheckPointItemsForJsExpVerification(testresult,arr[2].split("`"),objtext.trim());
 					}else{
 						boolean r=false;
 						if(checktype.equals(CheckPointType.CheckContain)){
@@ -213,16 +221,6 @@ public class TestExecuteService {
 								r=false;
 								item.setCheckInfo(checkInfo+"\n"+"正则表达式异常："+e.getMessage());
 							}
-						}else if(checktype.equals(CheckPointType.CheckJsExp)){
-							String[] arr=checkInfo.split(SeperatorDefinition.checkInfoSeperator);
-							responseinfo=responseinfo.replaceAll("\\n","").replaceAll("\\r","");
-							responseinfo=StringUtils.substringAfter(responseinfo, arr[0]);
-							if(!arr[1].isEmpty()){
-								responseinfo=StringUtils.substringBefore(responseinfo, arr[1]);
-							}
-							String expression=(responseinfo.indexOf("{")>-1 & responseinfo.indexOf("{")<responseinfo.indexOf("}")) ? 
-									returnJSONResultByNodejs(arr[2],responseinfo) : returnXMLResultByNodejs(arr[2],responseinfo);
-							r=Boolean.parseBoolean(expression);
 						}
 						if(r){
 							item.setResult(CheckPointResult.pass);
@@ -243,7 +241,7 @@ public class TestExecuteService {
 		return testresult.getCheckPoint();
 	}
 	
-	private void addCheckPointItemsForDBVerification(String testPath,TestResultItem testresult, String setting, String response){
+	private void addCheckPointItemsForDBVerification(TestResultItem testresult, String setting, String response){
 		String[] arr=setting.split(SeperatorDefinition.checkInfoSeperator);
 		if(arr.length==8){
 			String source=arr[0];
@@ -288,6 +286,61 @@ public class TestExecuteService {
 			}
 		}
 	}
+	
+	//需要modejs支持
+	private void addCheckPointItemsForJsExpVerification(TestResultItem testresult, String[] exps, String objtext){
+		String objDef="";
+		String res="";
+		if(!objtext.isEmpty()){
+			if(objtext.indexOf("{")>-1 & objtext.indexOf("{")<objtext.indexOf("}")){
+				objDef="var obj=JSON.parse('"+objtext.replace(" ", "").replace("'", "\"")+"');";
+			}
+			//环境安装：xmldom npm包
+			else if(objtext.indexOf("<")>-1 & objtext.indexOf("<")<objtext.indexOf(">")){
+				objDef="var DOMParser = require('xmldom').DOMParser1;var obj=new DOMParser().parseFromString('"+objtext.replace("'", "\"")+"','text/xml');";
+			}
+			for(int i=0;i<exps.length;i++){
+				objDef+="console.info("+exps[i]+");";
+			}
+			
+			String filename=new Date().getTime()+".js";
+			File f=new File(filename);
+			try{
+				f.createNewFile();
+				FileUtils.writeStringToFile(f, objDef);
+				Runtime runtime = Runtime.getRuntime();
+				Process p = runtime.exec("cmd /k node "+f.getAbsolutePath());
+				InputStream err = p.getErrorStream();
+				InputStream is = p.getInputStream();
+				p.getOutputStream().close(); 
+				res = IOUtils.toString(err,"gbk");
+				res += IOUtils.toString(is,"gbk");	
+				res = StringUtils.substringBetween(res, "", "\n\r");
+				int exitVal = p.waitFor();   
+			}catch(Exception e){
+				res=e.getMessage();
+			}finally{
+				if(f.exists())
+					f.delete();
+			}
+		}
+		String[] result=res.split("\n");
+		for(int i=0;i<exps.length;i++){
+			CheckPointItem cp=new CheckPointItem();
+			cp.setName("Verify content by js expression "+(i+1));
+			cp.setType("js expression");
+			cp.setCheckInfo(exps[i]);
+			boolean r=Boolean.parseBoolean(result.length==exps.length ? result[i] : "false");
+			cp.setResult(r ? CheckPointResult.pass : CheckPointResult.fail);
+			testresult.getCheckPoint().add(cp);
+			if(testresult.getResult().equalsIgnoreCase(CheckPointResult.pass)){
+				if(!r)
+					testresult.setResult(CheckPointResult.fail);
+			}
+		}
+		
+	}
+	
 	
 	private String getParameterValueAfterRequest(String extraInfo){
 		String val="";
@@ -857,55 +910,6 @@ public class TestExecuteService {
 			pos2=content.indexOf("}}");
 		}
 		return content;
-	}
-	
-	private String returnJSONResultByNodejs(String exp,String responseinfo){
-		exp=exp.replace("objtext", "\\\""+responseinfo.replaceAll("\"","\\\\"+"\\\\"+"\\\\"+"\"")+"\\\"");
-		String res="";
-		String filename=new Date().getTime()+".js";
-		File f=new File(filename);
-		try{
-			f.createNewFile();
-			FileUtils.writeStringToFile(f, "console.info(eval(\""+exp+"\"))");
-			Runtime runtime = Runtime.getRuntime();
-			Process p = runtime.exec("cmd /k node "+f.getAbsolutePath());
-			InputStream is = p.getInputStream();
-			OutputStream os = p.getOutputStream();
-			os.close();
-			res = IOUtils.toString(is,"gbk");
-			res = StringUtils.substringBetween(res, "", "\n\r");
-		}catch(Exception e){
-			res=e.getMessage();
-			
-		}finally{
-			if(f.exists())
-				f.delete();
-		}
-		return res;
-	}
-	
-	private String returnXMLResultByNodejs(String exp,String responseinfo){
-		exp=exp.replace("objtext", "'"+responseinfo+"'");
-		String res="";
-		String filename=new Date().getTime()+".js";
-		File f=new File(filename);
-		try{
-			f.createNewFile();
-			FileUtils.writeStringToFile(f, "var DOMParser = require('xmldom').DOMParser;\nconsole.info("+exp+")");
-			Runtime runtime = Runtime.getRuntime();
-			Process p = runtime.exec("cmd /k node "+f.getAbsolutePath());
-			InputStream is = p.getInputStream();
-			OutputStream os = p.getOutputStream();
-			os.close();
-			res = IOUtils.toString(is,"gbk");
-			res = StringUtils.substringBetween(res, "", "\n\r");
-		}catch(Exception e){
-			res=e.getMessage();
-		}finally{
-			if(f.exists())
-				f.delete();
-		}
-		return res;
 	}
 	
 	public static void main(String args[]){
