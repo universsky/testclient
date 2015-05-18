@@ -6,7 +6,7 @@
 
 2. add test node
  + add Http(s) test
-![image](https://github.com/Gnail-nehc/testclient/raw/master/%E4%BA%A7%E5%93%81%E6%88%AA%E5%9B%BE/%E9%85%8D%E7%BD%AEhttp%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B.png)
+![image](https://github.com/Gnail-nehc/testclient/raw/master/产品截图/配置http测试用例.png)
  + add socket test
 
 3. copy node
