@@ -912,32 +912,32 @@ public class TestExecuteService {
 		return content;
 	}
 	
-	public static void main(String args[]){
-		String key="";
-		StringUtils.substringAfter("qqwww123","q");
-		String exp="JSON.parse(\"{\\\\\"id\\\\\":1}\").id==1";
-		String filename=new Date().getTime()+".js";
-		File f=new File(filename);
-		try{
-			f.createNewFile();
-			FileUtils.writeStringToFile(f, "console.log(eval(\""+exp.replace("\"", "\\\"")+"\"))");
-			Runtime runtime = Runtime.getRuntime();
-			Process p = runtime.exec("cmd /k node "+f.getAbsolutePath());
-			InputStream is = p.getInputStream();
-			OutputStream os = p.getOutputStream();
-			os.close();
-			key = IOUtils.toString(is,"gbk");
-			key=StringUtils.substringBetween(key, "", "\n\r");
-		}catch(Exception e){
-			key=e.getMessage();
+	// public static void main(String args[]){
+	// 	String key="";
+	// 	StringUtils.substringAfter("qqwww123","q");
+	// 	String exp="JSON.parse(\"{\\\\\"id\\\\\":1}\").id==1";
+	// 	String filename=new Date().getTime()+".js";
+	// 	File f=new File(filename);
+	// 	try{
+	// 		f.createNewFile();
+	// 		FileUtils.writeStringToFile(f, "console.log(eval(\""+exp.replace("\"", "\\\"")+"\"))");
+	// 		Runtime runtime = Runtime.getRuntime();
+	// 		Process p = runtime.exec("cmd /k node "+f.getAbsolutePath());
+	// 		InputStream is = p.getInputStream();
+	// 		OutputStream os = p.getOutputStream();
+	// 		os.close();
+	// 		key = IOUtils.toString(is,"gbk");
+	// 		key=StringUtils.substringBetween(key, "", "\n\r");
+	// 	}catch(Exception e){
+	// 		key=e.getMessage();
 			
-		}finally{
-			if(f.exists())
-				f.delete();
-		}
-		System.out.println(key);
+	// 	}finally{
+	// 		if(f.exists())
+	// 			f.delete();
+	// 	}
+	// 	System.out.println(key);
 		
-	}
+	// }
 	
 	
 }
