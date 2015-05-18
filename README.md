@@ -8,7 +8,7 @@
  + add Http(s) test
 ![image](https://raw.githubusercontent.com/Gnail-nehc/testclient/master/产品截图/配置http测试用例.png)
  + add socket test
-
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/配置socket测试用例.png)
 3. copy node
  * batch copy node at the same folder
  * drag & drop node in any folder
