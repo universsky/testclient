@@ -1,12 +1,32 @@
+var JsExpressionStore=new Ext.data.Store({
+	model: 'testmocker.model.Parameter',
+    storeId: 'JsExpressionStore',
+    pageSize: 9999,
+    proxy:{
+		type:"memory",
+		reader:{
+			type:"json",
+			root:'jsexp',
+		}
+	},
+	fields:[
+        {
+        	name: 'expression',
+        	type: 'string'
+        }
+    ],
+	data:[]
+});
+
 Ext.define('MyApp.view.JsExpressionCheckpointSettingWindow', {
     extend: 'Ext.window.Window',
     alias: 'widget.JsExpressionCheckpointSettingWindow',
-    height: 700,
     id: 'JsExpressionCheckpointSettingWindow',
     modal:true,
-    width: 500,
+    height: 650,
+    width: 950,
     layout: {
-        type: 'vbox'
+        type: 'border'
     },
     resizable:false,
     title: 'Javascript表达式验证',
@@ -16,113 +36,179 @@ Ext.define('MyApp.view.JsExpressionCheckpointSettingWindow', {
         Ext.applyIf(me, {
             items: [
                 {
-                	xtype:'label',
-                	text:'response text：'
+                	xtype:'panel',
+                	title:'response text',
+                	width:450,
+                	height: 650,
+                	region:'west',
+                	layout: 'vbox',
+                	items:[
+					{
+						xtype:'textarea',
+						width:450,
+						id:"ResText",
+						flex:22,
+						autoScroll:true
+					},
+					{
+						xtype:'textfield',
+						id:"JsExpLBound",
+						labelWidth:50,
+						width:445,
+						flex:1,
+						fieldLabel:'左边界'
+					},
+			        {
+			        	xtype:'textfield',
+			        	id:"JsExpRBound",
+			        	labelWidth:50,
+			        	width:445,
+			        	flex:1,
+			        	fieldLabel:'右边界'
+			        }]
                 },
             	{
-            		xtype:'textarea',
-            		flex:16,
-            		anchor:"100% 90%",
-            		width:500,
-            		id:"ResText",
-            		height:600,
-            		autoScroll:true
-            	},
-            	{
             		xtype:'panel',
-            		layout:'hbox',
-            		items:[
-        		       {
-        		    	   xtype:'textfield',
-        		    	   id:"JsExpLBound",
-        		    	   labelWidth:50,
-        		    	   width:250,
-        		    	   fieldLabel:'左边界'
-        		       },
-        		       {
-        		    	   xtype:'textfield',
-        		    	   id:"JsExpRBound",
-        		    	   labelWidth:50,
-        		    	   width:250,
-        		    	   fieldLabel:'右边界'
-        		       }
-            		]
-            	},
-            	{
-            		xtype:'panel',
-            		width:500,
-            		layout:'hbox',
+            		region:'east',
+            		width:480,
+            		height: 650,
+            		layout:'vbox',
             		items:[
 						{
 							xtype:'label',
-							id:'JsExpPrefix',
+							id:"JsObjDefText",
+							flex:1,
+							width:480,
 						},
 						{
-							xtype:'textfield',
-							id:'JavascriptExpression'
-						}
-            		]
-            	},
-            	{
-            		xtype:'panel',
-            		layout:'hbox',
-            		items:[
-        		       {
-        		    	   xtype:'button',
-        		    	   flex:1,
-        		    	   text:'测试一下',
-        		    	   anchor:"10% 5%",
-        		    	   handler:function(){
-        		    		   var text=me.getObjectText();
-        		    		   if(text.indexOf("ERR:没找到")!=0){
-        		    			   if(me.isValid(text)){
-            		    			   var exp=Ext.getCmp('JavascriptExpression').getValue();
-            		    			   text='"'+text.replace(new RegExp("\"","gm"),"\\\"")+'"';
-            		    			   var pre=Ext.getCmp('JsExpPrefix').text.replace('objtext',text);
-            		    			   try{
-            		    				   var bool=eval(pre+exp);
-                		    			   if(bool){
-                		    				   Ext.getCmp('JsExpTestResult').getEl().setStyle('background','green');
-                		    				   Ext.getCmp('JsExpTestResult').setText('Pass');
-                		    			   }else{
-                		    				   Ext.getCmp('JsExpTestResult').getEl().setStyle('background','red');
-                		    				   Ext.getCmp('JsExpTestResult').setText('Fail.');
-                		    			   }
-            		    			   }catch(e){
-            		    				   Ext.getCmp('JsExpTestResult').getEl().setStyle('background','red');
-            		    				   Ext.getCmp('JsExpTestResult').setText(e.message);
-            		    			   }
-            		    		   }else{
-            		    			   Ext.Msg.alert("错误","不是合法的JSON或XML文本");
-            		    		   }
-        		    		   }else{
-        		    			   Ext.Msg.alert("错误",text);
-        		    		   }
-        		    	   }
-        		       },
-        		       {
-        		    	   id:'JsExpTestResult',
-        		    	   width:390,
-        		    	   xtype:'label'
-        		       },
-        		       {
-							xtype:'tbseparator'
-        		       },
-        		       {
+							xtype:'gridpanel',
+							flex:22,
+							width:480,
+							id: 'JsExpressionGrid',
+        					title: 'javascript条件表达式',
+        					mode:'local',
+        	                autoFill : true,
+        					store: JsExpressionStore,
+        	                dockedItems: [
+        	                {
+        	                    xtype: 'toolbar',
+        	                    dock: 'top',
+        	                    items: [
+        	                    {
+        	                        xtype: 'button',
+        	                        handler: function(button, event) {
+        	                        	JsExpressionStore.insert(0,{});
+        	                            var rowEdit = Ext.getCmp('JsExpressionGrid').getPlugin("JsExpEditPlugin");
+        	                            rowEdit.startEdit(0,1); 
+        	                        },
+        	                        icon: 'image/add.png',
+        	                        tooltip: '新增表达式'
+        	                    }]
+        	                }],
+        	                plugins: [
+        	                    Ext.create('Ext.grid.plugin.RowEditing', {
+        	                        pluginId: 'JsExpEditPlugin',
+        	                        autoCancel:true,
+        	                        listeners: {
+        	                        	edit: {
+        				                    fn: function(editor, context, eOpts) {
+        				                    },
+        				                    scope: me
+        	                        	}
+        	                        }
+        	                    })
+        	                ],
+        					columns:[
+								{
+									header:"条件表达式",
+									flex:11,
+									dataIndex:"expression",
+									editor: {
+        						    	xtype: 'textfield',
+        		                        allowBlank:false
+        						    }
+								},
+        						{
+								    xtype: 'actioncolumn',
+								    header:"测试",
+								    flex:1,
+								    items: [
+								    {
+								        handler: function(view, rowIndex, colIndex, item, e, record, row) {
+								        	var text=me.getObjectText();
+								        	if(text.indexOf("ERR:没找到")!=0){
+								        		if(me.isValid(text)){
+								        			var definition=Ext.getCmp('JsObjDefText').text;
+								        			text='"'+text.replace(new RegExp("\"","gm"),"\\\"")+'"';
+								        			definition=definition.replace('objtext',text);
+								        			try{
+								        				var bool=eval(definition+record.data.expression);
+								        				if(bool){
+								        					row.childNodes[2].firstChild.style.background="green";
+								        					row.childNodes[2].firstChild.firstChild.nodeValue='Pass.';
+								        				}else{
+								        					row.childNodes[2].firstChild.style.background="red";
+								        					row.childNodes[2].firstChild.firstChild.nodeValue='Fail.';
+								        				}
+								        			}catch(e){
+								        				row.childNodes[2].firstChild.style.background="red";
+								        				row.childNodes[2].firstChild.firstChild.nodeValue=e.message;
+								        			}
+								        		}else{
+								        			Ext.Msg.alert("错误","不是合法的JSON或XML文本");
+								        		}
+								        	}else{
+								        		Ext.Msg.alert("错误",text);
+								        	}
+								        },
+								        icon: 'image/execution.png',
+								        tooltip: '测试'
+								    }]
+								},
+								{
+									header:"测试结果",
+									flex:4,
+								},
+								{
+								    xtype: 'actioncolumn',
+								    header:"删除",
+								    flex:1,
+								    items: [
+								    {
+								        handler: function(view, rowIndex, colIndex, item, e, record, row) {
+								        	Ext.MessageBox.confirm("confirm","确认删除？",
+									            function(e){
+									                if(e=='yes'){
+									                	JsExpressionStore.removeAt(rowIndex);
+									                	JsExpressionStore.sync();
+									                }
+									            }
+								            );
+								        },
+								        icon: 'image/delete.png',
+								        tooltip: '删除'
+								    }]
+								}
+        					]
+						},
+						{
 	                   		xtype:'button',
-	                   		arrowAlign:'right',
 	                   		flex:1,
 	                   		text:'保存',
 	                   		anchor:"10% 5%",
-	                   		resultStr:"",
 	                   		handler:function(){
 	                   			var text=me.getObjectText();
 	                   			if(text.indexOf("ERR:没找到")!=0){
         		    			   if(me.isValid(text)){
         		    				   var lb=Ext.getCmp('JsExpLBound').getValue();
         		    				   var rb=Ext.getCmp('JsExpRBound').getValue();
-            		    			   var exp=Ext.getCmp('JsExpPrefix').text+Ext.getCmp('JavascriptExpression').getValue();
-        		    				   Ext.getCmp("CheckInfoTextArea").setValue(lb+'<EOF>'+rb+'<EOF>'+exp);
+        		    				   var exps="";
+        		    				   JsExpressionStore.data.items.forEach(function(item){
+	                            			if(item.data.expression){
+	                            				exps=exps+item.data.expression+"`";
+	                            			}
+	                            		});
+        		    				   Ext.getCmp("CheckInfoTextArea").setValue(lb+'<EOF>'+rb+'<EOF>'+exps.substring(0,exps.length-1));
         		    				   Ext.getCmp("JsExpressionCheckpointSettingWindow").close();
             		    		   }else{
             		    			   Ext.Msg.alert("错误","不是合法的JSON或XML文本");
@@ -156,13 +242,11 @@ Ext.define('MyApp.view.JsExpressionCheckpointSettingWindow', {
 						    		Ext.getCmp('ResText').setValue(res);
 						    		var labeltext='';
 						    		if(res.indexOf('{') >= 0 && res.indexOf('}') > res.indexOf('{')){
-						    			Ext.getCmp('JavascriptExpression').setWidth(395);
-						    			labeltext='JSON.parse(objtext).';
+						    			labeltext='var obj=JSON.parse(objtext);';
 						    		}else if(res.indexOf('<') >= 0 && res.indexOf('>') > res.indexOf('<')){
-						    			Ext.getCmp('JavascriptExpression').setWidth(195);
-						    			labeltext='new DOMParser().parseFromString(objtext,"text/xml").';
+						    			labeltext='var obj=new DOMParser().parseFromString(objtext,"text/xml");';
 						    		}
-						    		Ext.getCmp('JsExpPrefix').setText(labeltext);
+						    		Ext.getCmp('JsObjDefText').setText(labeltext);
 						    	}else
 						    		Ext.Msg.alert("错误",object.msg);
 						    },
@@ -179,9 +263,14 @@ Ext.define('MyApp.view.JsExpressionCheckpointSettingWindow', {
         me.callParent(arguments);
     },
     getObjectText:function(){
-    	var res=Ext.getCmp('ResText').getValue().replace(new RegExp("\n","gm"),"").replace(new RegExp("\r","gm"),"");
     	var lb=Ext.getCmp('JsExpLBound').getValue();
     	var rb=Ext.getCmp('JsExpRBound').getValue();
+    	var res=Ext.getCmp('ResText').getValue().replace(new RegExp("\n","gm"),"").replace(new RegExp("\r","gm"),"");
+    	if(res.indexOf("{")>-1 && res.indexOf("{")<res.indexOf("}")){
+    		res=res.replace(new RegExp(" ","gm"),"");
+    		lb=lb.replace(new RegExp(" ","gm"),"");
+    		rb=rb.replace(new RegExp(" ","gm"),"");
+    	}
     	if(lb){
     		var spos=res.indexOf(lb);
     		if(spos!=-1){
@@ -194,7 +283,7 @@ Ext.define('MyApp.view.JsExpressionCheckpointSettingWindow', {
     	if(rb){
     		var epos=res.indexOf(rb);
     		if(epos!=-1){
-    			return res.substring(0,epos+1);
+    			return res.substring(0,epos);
     		}else{
     			return "ERR:没找到"+rb;
     		}
