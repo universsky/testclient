@@ -6,9 +6,8 @@
 
 2. add test node
  + add Http(s) test
-![image](https://raw.githubusercontent.com/Gnail-nehc/testclient/master/产品截图/配置http测试用例.png)
  + add socket test
-![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/配置socket测试用例.png)
+
 3. copy node
  * batch copy node at the same folder
  * drag & drop node in any folder
@@ -20,24 +19,32 @@
  * physical delete node
 
 6. configure test with parameterization
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/配置http测试用例.png)
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/配置socket测试用例.png)
 
 7. configure environment variable
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/设置环境变量.png)
 
 8. configure checkpoint
  * string contains checkpoint
  * regular expression checkpoint
  * sql verification checkpoint
  * javascript expression checkpoint
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/JS表达式验证1.png)
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/JS表达式验证2.png)
 
 9. bind initial data
  * bind data from other test
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/配置前置数据-请求参数绑定外部接口返回.png)
  * bind data from sql returned
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/配置前置数据-请求参数绑定数据库字段值.png)
 
 10. output parameter setting
 
 11. initial action for test
  * initial other test as action
  * initial sql language as action
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/前or后置sql动作设置.png)
 
 12. teardown action for test
  * teardown other test as action
@@ -46,10 +53,12 @@
 13. execute test
 
 14. execute batch test
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/批量执行测试.png)
 
 15. view test history
 
 16. running Env. accross folder
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/测试运行环境.png)
 
 17. view charts with running metrics
  * test result summary for current week
@@ -59,6 +68,7 @@
 18. query node with node name
 
 19. schedule running task configuration
+![image](https://github.com/Gnail-nehc/testclient/blob/master/产品截图/定时运行管理.png)
 
 20. private/public workspace for auth user
 
