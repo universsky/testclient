@@ -6,6 +6,7 @@ public class TestConfigItem {
 	String headers;
 	String parameters;
 	String body;
+	String method;
 	
 	public String getBody() {
 		return body;
@@ -36,6 +37,12 @@ public class TestConfigItem {
 	}
 	public void setParameters(String parameters) {
 		this.parameters = parameters;
+	}
+	public String getMethod() {
+		return method;
+	}
+	public void setMethod(String method) {
+		this.method = method;
 	}
 	
 }
