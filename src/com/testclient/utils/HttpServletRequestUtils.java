@@ -77,22 +77,23 @@ public class HttpServletRequestUtils {
 					return StringUtils.substringBefore(text, "<");
 				}
 			}
-		} else if (text.indexOf("}") > text.indexOf("{")
-				&& text.indexOf("{") > -1) {
-			int pos = text.toLowerCase().indexOf(
-					"\"" + key.toLowerCase() + "\"");
-			if (pos != -1) {
-				pos += ("\"" + key + "\"").length() + 1;
-				text = text.substring(pos);
-				if (text.startsWith("\"")) {
-					return StringUtils.substringBetween(text, "\"");
-				} else {
-					String v = StringUtils.substringBefore(text, ",");
-					if (v == text)
-						v = StringUtils.substringBefore(text, "}");
-					return v;
-				}
-			}
+		} else if ((text.startsWith("{") && text.endsWith("}"))) {
+			JSONObject json= new JSONObject(text);
+			return json.get(key).toString();
+//			int pos = text.toLowerCase().indexOf(
+//					"\"" + key.toLowerCase() + "\"");
+//			if (pos != -1) {
+//				pos += ("\"" + key + "\"").length() + 1;
+//				text = text.substring(pos);
+//				if (text.startsWith("\"")) {
+//					return StringUtils.substringBetween(text, "\"");
+//				} else {
+//					String v = StringUtils.substringBefore(text, ",");
+//					if (v == text)
+//						v = StringUtils.substringBefore(text, "}");
+//					return v.replace("\"","");
+//				}
+//			}
 		} else {
 			for (String kv : text.split("&")) {
 				if (kv.startsWith(key)) {
