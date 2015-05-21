@@ -1,8 +1,8 @@
 # API Test Platform
 
-## Supported Protocol: HTTP, HTTPS, SOTP(TCP-based),SOAP Web Service
-## Supported Content Type: JSON, XML
-## Supported Method: GET, POST, PUT, DELETE 
+#### Supported Protocol: HTTP, HTTPS, SOTP(TCP-based),SOAP Web Service
+#### Supported Content Type: JSON, XML
+#### Supported Method: GET, POST, PUT, DELETE 
 
 # Feature List:
 
