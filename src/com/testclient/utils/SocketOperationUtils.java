@@ -2,14 +2,11 @@ package com.testclient.utils;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.testclient.httpmodel.ServerItem;
-import com.testclient.model.ConvertRequest;
-import com.testclient.model.ConvertResponse;
-import com.testclient.model.InvokeRequest;
-import com.testclient.model.InvokeResponse;
-
 import net.sf.json.JSONObject;
-import shelper.iffixture.HTTPFacade;
+import ccom.testclient.model.ConvertRequest;
+import ccom.testclient.model.ConvertResponse;
+import ccom.testclient.model.InvokeRequest;
+import ccom.testclient.model.InvokeResponse;
 
 public class SocketOperationUtils {
 	private String url="";
