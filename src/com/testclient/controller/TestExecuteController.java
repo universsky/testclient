@@ -34,7 +34,6 @@ import com.testclient.service.TestExecuteService;
 import com.testclient.utils.Auto;
 import com.testclient.utils.TemplateUtils;
 
-
 @Controller
 public class TestExecuteController {
 	private static final Logger logger = Logger.getLogger(TestExecuteController.class);
@@ -56,10 +55,13 @@ public class TestExecuteController {
 	        for(Object aaa: key.toArray()){ 
 	        	String parakey = aaa.toString(); 
 	        	String paravalue = ((String[])map.get(aaa))[0];
+	        	String paraval=testExecuteService.parsePreServiceReqParameter(paravalue);
 	        	//if defaultvalue is returned function of Auto class.
-	        	paravalue = TemplateUtils.getString(paravalue, requestmap);
-	        	requestmap.put(parakey, paravalue);
-	        } 
+	        	if(paravalue.equals(paraval)){
+	        		paraval = TemplateUtils.getString(paravalue, requestmap);
+	        	}
+	        	requestmap.put(parakey, paraval);
+	        }
 	        path = requestmap.get("__HiddenView_path").toString();
 	        String looptimes=(String)requestmap.get(LoopParameterNameInForm.name);
 	        looptimes=looptimes!=null?looptimes:"1";
