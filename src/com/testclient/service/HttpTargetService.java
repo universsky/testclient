@@ -1,4 +1,4 @@
-package ccom.testclient.service;
+package com.testclient.service;
 
 import java.io.File;
 import java.io.IOException;
