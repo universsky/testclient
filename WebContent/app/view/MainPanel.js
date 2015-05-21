@@ -367,7 +367,8 @@ Ext.define('MyApp.view.MainPanel', {
             		if(theparameters[key].type=='textfield'){
 	            		Ext.getCmp('InputPanel').add({
 					    xtype:'textfield',
-					    labelWidth: 200,
+					    labelWidth: 150,
+					    resizable:true,
 	        			fieldLabel: theparameters[key].text,
 	        			value:theparameters[key].defaultValue,
 	        			name:theparameters[key].name
@@ -375,7 +376,7 @@ Ext.define('MyApp.view.MainPanel', {
             		}else if(theparameters[key].type=='combo'){
             			Ext.getCmp('InputPanel').add({
 					    xtype:'combo',
-	        			labelWidth: 200,
+	        			labelWidth: 150,
 	        			fieldLabel:theparameters[key].text,
 	        			store:Ext.decode(theparameters[key].extraInfo),
 	        			value:theparameters[key].defaultValue,
@@ -387,7 +388,7 @@ Ext.define('MyApp.view.MainPanel', {
         					new Ext.create('Ext.form.field.ComboBox', {
         						id: 'ServiceBoundCombo',
         						editable:false,
-        						labelWidth: 200,
+        						labelWidth: 150,
         						fieldLabel:theparameters[key].text,
         						name:theparameters[key].name,
         						value:theparameters[key].extraInfo,
@@ -417,7 +418,7 @@ Ext.define('MyApp.view.MainPanel', {
             		}else if(theparameters[key].type=='loop'){
             			Ext.getCmp('InputPanel').add({
 					    xtype:'textfield',
-					    labelWidth: 200,
+					    labelWidth: 150,
 					    fieldLabel: '循环次数',
 	        			value: theparameters[key].defaultValue,
 	        			name: '__CYCLES__'
