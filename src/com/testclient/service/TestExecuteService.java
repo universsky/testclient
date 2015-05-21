@@ -1,4 +1,4 @@
-package com.testclient.service;
+package ccom.testclient.service;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,38 +25,39 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import shelper.iffixture.HTTPFacade;
-import com.testclient.enums.ActionFileName;
-import com.testclient.enums.CheckPointResult;
-import com.testclient.enums.CheckPointType;
-import com.testclient.enums.HistoryFolderName;
-import com.testclient.enums.LoopParameterNameInForm;
-import com.testclient.enums.PreConfigType;
-import com.testclient.enums.SeperatorDefinition;
-import com.testclient.enums.TestStatus;
-import com.testclient.factory.JsonObjectMapperFactory;
-import com.testclient.httpmodel.CheckPointItem;
-import com.testclient.httpmodel.Json;
-import com.testclient.httpmodel.PreConfigItem;
-import com.testclient.httpmodel.ServerItem;
-import com.testclient.httpmodel.ServiceBoundDataItem;
-import com.testclient.httpmodel.SqlEntity;
-import com.testclient.httpmodel.TestResultItem;
-import com.testclient.model.CheckPointContianer;
-import com.testclient.model.HttpTarget;
-import com.testclient.model.InvokeRequest;
-import com.testclient.model.InvokeResponse;
-import com.testclient.model.KeyValue;
-import com.testclient.model.Parameter;
-import com.testclient.model.PreConfigContainer;
-import com.testclient.model.SocketTarget;
-import com.testclient.model.SqlQueryReturn;
-import com.testclient.utils.Auto;
-import com.testclient.utils.FileNameUtils;
-import com.testclient.utils.JdbcUtils;
-import com.testclient.utils.MyFileUtils;
-import com.testclient.utils.SocketOperationUtils;
-import com.testclient.utils.TemplateUtils;
+import ccom.testclient.enums.ActionFileName;
+import ccom.testclient.enums.CheckPointResult;
+import ccom.testclient.enums.CheckPointType;
+import ccom.testclient.enums.HistoryFolderName;
+import ccom.testclient.enums.LoopParameterNameInForm;
+import ccom.testclient.enums.PreConfigType;
+import ccom.testclient.enums.PreReqPara;
+import ccom.testclient.enums.SeperatorDefinition;
+import ccom.testclient.enums.TestStatus;
+import ccom.testclient.factory.JsonObjectMapperFactory;
+import ccom.testclient.httpmodel.CheckPointItem;
+import ccom.testclient.httpmodel.Json;
+import ccom.testclient.httpmodel.PreConfigItem;
+import ccom.testclient.httpmodel.ServerItem;
+import ccom.testclient.httpmodel.ServiceBoundDataItem;
+import ccom.testclient.httpmodel.SqlEntity;
+import ccom.testclient.httpmodel.TestResultItem;
+import ccom.testclient.model.CheckPointContianer;
+import ccom.testclient.model.HttpTarget;
+import ccom.testclient.model.InvokeRequest;
+import ccom.testclient.model.InvokeResponse;
+import ccom.testclient.model.KeyValue;
+import ccom.testclient.model.Parameter;
+import ccom.testclient.model.PreConfigContainer;
+import ccom.testclient.model.SocketTarget;
+import ccom.testclient.model.SqlQueryReturn;
+import ccom.testclient.utils.Auto;
+import ccom.testclient.utils.FileNameUtils;
+import ccom.testclient.utils.HTTPFacade;
+import ccom.testclient.utils.JdbcUtils;
+import ccom.testclient.utils.MyFileUtils;
+import ccom.testclient.utils.SocketOperationUtils;
+import ccom.testclient.utils.TemplateUtils;
 
 @Service("testExecuteService")
 public class TestExecuteService {
@@ -348,29 +349,11 @@ public class TestExecuteService {
 		String path=parainfo[0];
 		String lb=parainfo[1];
 		String rb=parainfo[2];
-		return getParaValueAfterRequest(path,lb,rb,1);
-	}
-	
-	private String getParaValueAfterRequest(String path,String lb,String rb,int times){
 		Map paras = getRequestParameterMap(path);
 		String res = getTestResultItem(path,paras).getResponseInfo();
-		int startpos = res.indexOf(lb);
-		if(startpos>0){
-			while(times-->0){
-				if(startpos>0)
-					res = res.substring(startpos+lb.length());
-				startpos = res.indexOf(lb);
-			}
-			int endpos = res.indexOf(rb);
-			if(endpos>0){
-				res = res.substring(0, endpos);
-			}else
-				res="";
-		}else
-			res="";
-		return res;
+		return getParaValueFromResponse(res,lb,rb,1);
 	}
-	
+		
 	private String getParaValueFromResponse(String response,String lb,String rb,int times){
 		int startpos = response.indexOf(lb);
 		if(startpos>0){
@@ -413,6 +396,7 @@ public class TestExecuteService {
 				if(p.getType().equalsIgnoreCase("loop")){
 					p.setName(LoopParameterNameInForm.name);
 				}
+				////compatible with old design
 				else if(p.getType().equalsIgnoreCase("service")){
 					val=getParameterValueAfterRequest(p.getExtraInfo());
 				}
@@ -433,6 +417,7 @@ public class TestExecuteService {
 			for(Entry<String, Object> e : request.entrySet()){
 				String val=e.getValue().toString();
 				if(val!=null && !val.isEmpty()){
+					////compatible with old design
 					if(val.contains(SeperatorDefinition.paraForReferencedService)){
 						val=getParameterValueAfterRequest(val);
 						request.put(e.getKey(), val);
@@ -444,6 +429,24 @@ public class TestExecuteService {
 			logger.error(e.getClass().toString()+": "+e.getMessage());
 		}
 		return request;
+	}
+	
+	public String parsePreServiceReqParameter(String val){
+		String value="";
+		if(StringUtils.contains(val, PreReqPara.keyword+"(")){
+			String path=StringUtils.substringBetween(val, PreReqPara.keyword+"(", ")");
+			String reqpara=StringUtils.substringAfter(val, path+")").trim();
+			Map<String,Object> paras = getRequestParameterMap(path.trim());
+			for(Entry<String,Object> en : paras.entrySet()){
+				if(en.getKey().equalsIgnoreCase(reqpara)){
+					value=en.getValue().toString();
+					break;
+				}
+			}
+		}else{
+			value=val;
+		}
+		return value;
 	}
 	
 	private Map<String,Object> getParametersFromPreConfigFile(String testPath,Map<String,Object> request){
@@ -463,12 +466,14 @@ public class TestExecuteService {
 						String[] arr=setting.split(SeperatorDefinition.paraForReferencedService);
 						String path=arr[0];
 						String[] configs=arr[1].split(SeperatorDefinition.queryBoundRow);
+						Map<String,Object> paras = getRequestParameterMap(path);
+						String res = getTestResultItem(path,paras).getResponseInfo();
 						for(String item : configs){
 							String[] info=item.split(SeperatorDefinition.queryBoundItem);
 							String lb=info[1];
 							String rb=info[2];
 							int times=Integer.parseInt(info[3]);
-							String value=getParaValueAfterRequest(path,lb,rb,times);				
+							String value=getParaValueFromResponse(res,lb,rb,times);				
 							para.put(info[0], value);
 						}
 					}else if(type.equalsIgnoreCase(PreConfigType.query)){
@@ -655,9 +660,17 @@ public class TestExecuteService {
 			}
 			requestinfo+="[request body]:\n"+body;
 			
+			String method=target.getMethod();
 			long start = System.currentTimeMillis();
 			if(body==null || body.trim().equals("")){
-				hf.get();
+				if(null==method || method.isEmpty() || method.equals("default")){
+					hf.get();
+				}else if(method.equals("PUT")){
+					hf.put();
+				}else if(method.equals("DELETE")){
+					hf.delete();
+				}
+				
 			}else{
 				for(Object e : request.entrySet()){
 					Object v=((Entry<String,String>)e).getValue();
@@ -667,7 +680,13 @@ public class TestExecuteService {
 					}
 				}
 				hf.addRequestBody(body);
-				hf.postWithQueryStrInUrl();
+				if(null==method || method.isEmpty() || method.equals("default")){
+					hf.postWithQueryStrInUrl();
+				}else if(method.equals("PUT")){
+					hf.putWithQueryStrInUrl();
+				}else if(method.equals("DELETE")){
+					hf.deleteWithQueryStrInUrl();
+				}
 			}
 			long end = System.currentTimeMillis();
 			long duration = end - start;
@@ -912,32 +931,30 @@ public class TestExecuteService {
 		return content;
 	}
 	
-	// public static void main(String args[]){
-	// 	String key="";
-	// 	StringUtils.substringAfter("qqwww123","q");
-	// 	String exp="JSON.parse(\"{\\\\\"id\\\\\":1}\").id==1";
-	// 	String filename=new Date().getTime()+".js";
-	// 	File f=new File(filename);
-	// 	try{
-	// 		f.createNewFile();
-	// 		FileUtils.writeStringToFile(f, "console.log(eval(\""+exp.replace("\"", "\\\"")+"\"))");
-	// 		Runtime runtime = Runtime.getRuntime();
-	// 		Process p = runtime.exec("cmd /k node "+f.getAbsolutePath());
-	// 		InputStream is = p.getInputStream();
-	// 		OutputStream os = p.getOutputStream();
-	// 		os.close();
-	// 		key = IOUtils.toString(is,"gbk");
-	// 		key=StringUtils.substringBetween(key, "", "\n\r");
-	// 	}catch(Exception e){
-	// 		key=e.getMessage();
+	public static void main(String args[]){
+		String key="";
+		StringUtils.substringAfter("qqwww123","q");
+		String exp="JSON.parse(\"{\\\\\"id\\\\\":1}\").id==1";
+		String filename=new Date().getTime()+".js";
+		File f=new File(filename);
+		try{
+			f.createNewFile();
+			FileUtils.writeStringToFile(f, "console.log(eval(\""+exp.replace("\"", "\\\"")+"\"))");
+			Runtime runtime = Runtime.getRuntime();
+			Process p = runtime.exec("cmd /k node "+f.getAbsolutePath());
+			InputStream is = p.getInputStream();
+			OutputStream os = p.getOutputStream();
+			os.close();
+			key = IOUtils.toString(is,"gbk");
+			key=StringUtils.substringBetween(key, "", "\n\r");
+		}catch(Exception e){
+			key=e.getMessage();
 			
-	// 	}finally{
-	// 		if(f.exists())
-	// 			f.delete();
-	// 	}
-	// 	System.out.println(key);
+		}finally{
+			if(f.exists())
+				f.delete();
+		}
+		System.out.println(key);
 		
-	// }
-	
-	
+	}
 }
