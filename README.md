@@ -2,7 +2,9 @@
 
 #### Supported Protocol: HTTP, HTTPS, SOTP(TCP-based),SOAP Web Service
 #### Supported Content Type: JSON, XML
-#### Supported Method: GET, POST, PUT, DELETE 
+#### Supported Method: GET, POST, PUT, DELETE
+#### Supported Database Connection: SQL Server, MySQL 
+
 
 # Feature List:
 
