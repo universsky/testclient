@@ -1,4 +1,4 @@
-package com.testclient.service;
+package ccom.testclient.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,21 +24,20 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.testclient.enums.CheckPointType;
-import com.testclient.enums.SeperatorDefinition;
-import com.testclient.factory.JsonObjectMapperFactory;
-import com.testclient.httpmodel.CheckPointItem;
-import com.testclient.httpmodel.DataGridJson;
-import com.testclient.httpmodel.Json;
-import com.testclient.httpmodel.TestConfigItem;
-import com.testclient.model.CheckPointContianer;
-import com.testclient.model.HttpTarget;
-import com.testclient.model.KeyValue;
-import com.testclient.model.Parameter;
-import com.testclient.model.SocketTarget;
-import com.testclient.utils.FileNameUtils;
-import com.testclient.utils.MyFileUtils;
-
+import ccom.testclient.enums.CheckPointType;
+import ccom.testclient.enums.SeperatorDefinition;
+import ccom.testclient.factory.JsonObjectMapperFactory;
+import ccom.testclient.httpmodel.CheckPointItem;
+import ccom.testclient.httpmodel.DataGridJson;
+import ccom.testclient.httpmodel.Json;
+import ccom.testclient.httpmodel.TestConfigItem;
+import ccom.testclient.model.CheckPointContianer;
+import ccom.testclient.model.HttpTarget;
+import ccom.testclient.model.KeyValue;
+import ccom.testclient.model.Parameter;
+import ccom.testclient.model.SocketTarget;
+import ccom.testclient.utils.FileNameUtils;
+import ccom.testclient.utils.MyFileUtils;
 
 @Service("httpTargetService")
 public class HttpTargetService {
@@ -87,6 +86,10 @@ public class HttpTargetService {
 			}
 			httptarget.setParameters(pm);
 			httptarget.setRequestBody(item.getBody());
+			String method=item.getMethod();
+			if(null!=method && !method.isEmpty() && !method.equals("default")){
+				httptarget.setMethod(item.getMethod());
+			}
 			ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
 			mapper.writeValue(new File(FileNameUtils.getHttpTarget(item.getFolderName())), httptarget);
 			j.setSuccess(true);
@@ -185,6 +188,8 @@ public class HttpTargetService {
 			}
 			
 			item.setParameters(paras);
+			
+			item.setMethod(target.getMethod());
 			
 			j.setObj(item);
 		} catch (Exception e) {
