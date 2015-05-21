@@ -34,6 +34,16 @@ Ext.define('MyApp.view.TestConfigWindow', {
         					name: 'path'
         				},
         				{
+        					xtype:'combo',
+        					anchor: '100% 5%',
+        					margin:'5 10 5 0',
+        					fieldLabel: 'method',
+        					value: 'default',
+        					store:['default','PUT','DELETE'],
+        					name: 'method',
+        					editable:false
+        				},
+        				{
         					xtype:'textarea',
         					anchor: '100% 40%',
         					margin:'5 10 5 0',
@@ -43,7 +53,7 @@ Ext.define('MyApp.view.TestConfigWindow', {
         				},
         				{
         					xtype:'textarea',
-        					anchor: '100% 20%',
+        					anchor: '100% 16%',
         					margin:'5 10 5 0',
         					fieldLabel: 'headers',
         					name: 'headers',
@@ -51,7 +61,7 @@ Ext.define('MyApp.view.TestConfigWindow', {
         				},
         				{
         					xtype:'textarea',
-        					anchor: '100% 31%',
+        					anchor: '100% 30%',
         					margin:'5 10 5 0',
         					fieldLabel: 'parameters',
         					name: 'parameters',
@@ -115,6 +125,9 @@ Ext.define('MyApp.view.TestConfigWindow', {
 							form.findField('headers').setValue(record.headers);
 							form.findField('parameters').setValue(record.parameters);
 							form.findField('path').setValue(record.path);
+							if(record.method){
+								form.findField('method').setValue(record.method);
+							}
 						}
 						else{
 							Ext.Msg.alert("提示",obj.msg);
