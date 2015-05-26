@@ -11,11 +11,11 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
+import com.trilead.ssh2.log.Logger;
+
 import com.testclient.enums.Suffix4Deleted;
 import com.testclient.httpmodel.Node4Queue;
 import com.testclient.utils.MyFileUtils;
-import com.trilead.ssh2.log.Logger;
-
 
 @Service("treeNodeService")
 public class TreeNodeService {
@@ -35,6 +35,51 @@ public class TreeNodeService {
 	}
 	
 	
+	public List getChildNodes(String nodePath,boolean containsCheckbox){
+		List l = new ArrayList<Map<String, Object>>();
+		if(!nodePath.isEmpty()){
+			File top=new File(nodePath);
+			if(top.isDirectory()){
+				for(File f : top.listFiles()){
+					String fn=f.getName();
+					if(fn.endsWith("-dir") || fn.endsWith("-leaf") || fn.endsWith("-t")){
+						String folderName=f.getPath().replace("\\", "/");
+						Map node = new HashMap();
+						node.put("id", folderName.replaceAll("/", ">"));
+						node.put("folderName", folderName);
+						if(containsCheckbox)
+							node.put("checked", false);
+						if(fn.endsWith("-dir")){
+							//目录逻辑
+							String text=StringUtils.substringBeforeLast(fn, "-dir");
+							node.put("text", text);
+							node.put("leaf", false);
+							l.add(node);
+						}
+						else if(fn.endsWith("-leaf")){
+							//http节点逻辑
+							String text=StringUtils.substringBeforeLast(fn, "-leaf");
+							node.put("text", text);
+							node.put("leaf", true);
+							l.add(node);
+						}
+						else if(fn.endsWith("-t")){
+							//socket节点逻辑
+							String text=StringUtils.substringBeforeLast(fn, "-t");
+							node.put("text", text);
+							node.put("leaf", true);
+							node.put("iconCls","tcpicon");
+							l.add(node);
+						}
+					}
+				}
+			}
+			
+			
+		}
+		return l;
+	}
+	
 	public List getCheckedTree(String rootName,String[] checkedTests) {
 		List l = new ArrayList<Map<String, Object>>();
 		if(!rootName.isEmpty()){
@@ -45,6 +90,54 @@ public class TreeNodeService {
 		return l;
 	}
 	
+	public List getCheckedChildNodes(String nodePath,String[] checkedTests) {
+		List l = new ArrayList<Map<String, Object>>();
+		if(!nodePath.isEmpty()){
+			File top=new File(nodePath);
+			if(top.isDirectory()){
+				for(File f : top.listFiles()){
+					String fn=f.getName();
+					if(fn.endsWith("-dir") || fn.endsWith("-leaf") || fn.endsWith("-t")){
+						String folderName=f.getPath().replace("\\", "/");
+						Map node = new HashMap();
+						node.put("id", folderName.replaceAll("/", ">"));
+						node.put("folderName", folderName);
+						if(checkedTests!=null && checkedTests.length>0){
+							if(StringUtils.join(checkedTests,"\n").contains(folderName)){
+								node.put("checked", true);
+							}else
+								node.put("checked", false);
+						}
+						if(fn.endsWith("-dir")){
+							//目录逻辑
+							String text=StringUtils.substringBeforeLast(fn, "-dir");
+							node.put("text", text);
+							node.put("leaf", false);
+							l.add(node);
+						}
+						else if(fn.endsWith("-leaf")){
+							//http节点逻辑
+							String text=StringUtils.substringBeforeLast(fn, "-leaf");
+							node.put("text", text);
+							node.put("leaf", true);
+							l.add(node);
+						}
+						else if(fn.endsWith("-t")){
+							//socket节点逻辑
+							String text=StringUtils.substringBeforeLast(fn, "-t");
+							node.put("text", text);
+							node.put("leaf", true);
+							node.put("iconCls","tcpicon");
+							l.add(node);
+						}
+					}
+				}
+			}
+			
+			
+		}
+		return l;
+	}
 
 	private List getTreeNodeList(File file,boolean containsCheckbox){
 		List list = new ArrayList<Map<String, Object>>();
