@@ -71,7 +71,7 @@ Ext.define('MyApp.view.PreConfigurationWindow', {
                         		Ext.getCmp('Base').timeStamp=new Date().getTime();
                         		switch(newValue){
 	                    			case "service":
-	                    				Ext.getStore('PreServiceTreeStore').proxy.extraParams.rootName=Ext.getCmp('Base').RootName
+	                    				Ext.getStore('PreServiceTreeStore').proxy.extraParams.topPath=Ext.getCmp('Base').RootName
 	                    				Ext.getStore('PreServiceTreeStore').load();
 	                    				Ext.widget("PreServiceSettingWindow").show();
 	                    				break;
