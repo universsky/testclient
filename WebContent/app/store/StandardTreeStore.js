@@ -11,7 +11,7 @@ Ext.define('MyApp.store.StandardTreeStore', {
         type: 'ajax',
         api: {
             //create: 'job/addNode',
-            read: 'job/gettree',
+            read: 'job/getTreeChildNodes',
             update: 'job/modifyNode',
             destroy: 'job/delNode'                
         },
@@ -20,7 +20,7 @@ Ext.define('MyApp.store.StandardTreeStore', {
             messageProperty: 'msg'
         },
         extraParams: {
-            rootName: 'root'
+            topPath: 'root'
         },
         afterRequest: function(request, success) {
             if(!success){
