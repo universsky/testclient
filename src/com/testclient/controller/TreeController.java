@@ -3,42 +3,24 @@ package com.testclient.controller;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
-
-
-import net.sf.json.JSONObject;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.testclient.enums.SeperatorDefinition;
 import com.testclient.enums.Suffix4Deleted;
 import com.testclient.httpmodel.Json;
-import com.testclient.httpmodel.Node4Queue;
 import com.testclient.service.TreeNodeService;
 import com.testclient.utils.MyFileUtils;
-
 
 @Controller
 public class TreeController {
@@ -111,8 +93,18 @@ public class TreeController {
 	@ResponseBody
 	public Json addNode(@RequestParam("folderName")String  foldername) {
 		Json j=new Json();
+		File parent=new File(StringUtils.substringBeforeLast(foldername, "/"));
+		String filename=StringUtils.substringAfterLast(foldername, "/");
+		if(parent.exists()){
+			for(String child : parent.list()){
+				if(child.equalsIgnoreCase(filename)){
+					j.setSuccess(false);
+					j.setMsg("Duplicated node "+filename);
+					return j;
+				}
+			}
+		}
 		File f=new File(foldername);
-		System.out.println(f.getAbsolutePath());
 		MyFileUtils.makeDir(foldername);
 		j.setSuccess(true);
 		return j;
@@ -172,6 +164,14 @@ public class TreeController {
 		return list;
 	}
 	
+	@RequestMapping(value="/getTreeChildNodes")
+	@ResponseBody
+	public List getTreeChildNodes(@RequestParam String topPath,@RequestParam String node) {
+		topPath = (node==null || node.isEmpty()) ? topPath : node;
+		List list = treeNodeService.getChildNodes(topPath,false);
+		return list;
+	}
+	
 	@RequestMapping(value="/getSelectingTree")
 	@ResponseBody
 	public List getSelectingTree(@RequestParam String rootName) {
@@ -182,6 +182,13 @@ public class TreeController {
 	@ResponseBody
 	public List getSelectedTree(@RequestParam String rootName,@RequestParam String[] testset) {
 		return treeNodeService.getCheckedTree(rootName,testset);
+	}
+	
+	@RequestMapping(value="/getSelectedTreeChildNodes")
+	@ResponseBody
+	public List getSelectedTreeChildNodes(@RequestParam String topPath,@RequestParam String[] testset,@RequestParam String node) {
+		topPath = (node==null || node.isEmpty()) ? topPath : node;
+		return treeNodeService.getCheckedChildNodes(topPath,testset);
 	}
 	
 	@RequestMapping(value="/getFolderTree", method=RequestMethod.GET )
