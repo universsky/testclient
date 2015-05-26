@@ -1,23 +1,37 @@
-Ext.define('MyApp.store.ServiceActionTreeStore', {
-	extend: 'Ext.data.TreeStore',
-	storeId:"ServiceActionTreeStore",
-    root: {
-        text: '根节点',
-        id: 'root',
-        path:'root',
-        expanded: true
-    }, 
-    proxy: {
-        type: 'ajax',
-        api: {
-            read: 'job/gettree'                
-        },
-        reader: {
-            type: 'json',
-            messageProperty: 'msg'
-        },
-        extraParams: {
-            rootName: ''
-        }
+Ext.define('MyApp.store.SelectedTreeStore', {
+    extend: 'Ext.data.TreeStore',
+
+    constructor: function(cfg) {
+        var me = this;
+        cfg = cfg || {};
+        me.callParent([Ext.apply({
+            storeId: 'SelectedTreeStore',
+            clearOnLoad : true,
+            clearRemovedOnLoad:true,
+            buffered: false,
+            root: {
+                text: '根节点',
+                id: 'root',
+                folderName:'root',
+                draggable: false, 
+            },
+            proxy: {
+            	type: 'ajax',
+                api: {
+                    read: 'job/getSelectedTree'                
+                },
+                actionMethods: {
+                    read : 'POST'
+                },
+                reader: {
+                    type: 'json',
+                    messageProperty: 'msg'
+                },
+                extraParams:{
+                	rootName:'',
+                	testset:[]
+                }
+            }
+        }, cfg)]);
     }
 });
