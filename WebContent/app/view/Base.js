@@ -78,7 +78,7 @@ Ext.define('MyApp.view.Base', {
 		    	    		switch(tabName)
 		    	    		{
 			    	    		case "测试配置环境":
-			    	    			Ext.getStore('StandardTreeStore').proxy.extraParams.rootName=Ext.getCmp('Base').RootName;
+			    	    			Ext.getStore('StandardTreeStore').proxy.extraParams.topPath=Ext.getCmp('Base').RootName;
 			    	            	Ext.getStore('StandardTreeStore').load();
 			    	    			break;
 			    	    		case "测试运行环境":
@@ -107,6 +107,34 @@ Ext.define('MyApp.view.Base', {
 						            fn: me.itemmousedown,
 						            scope: me
 						        },
+						        beforeitemexpand : function ( node, eOpts ){
+				                	if(node.childNodes.length==0){
+				                		Ext.Ajax.request( {
+					                		loadMask: true,
+											url : 'job/getTreeChildNodes',
+											params : {  
+												topPath : node.raw.folderName,
+												node : node.raw.folderName
+											},
+										    success : function(response, options) {
+										    	Ext.get(document.body).unmask(); 
+										    	var arr=JSON.parse(response.responseText);
+										    	var parts=arr[0].id.split(">");
+										    	var id=arr[0].id.replace(">"+parts[parts.length-1],"");
+										    	if(id.indexOf(">")>0){
+										    		var node=Ext.getStore('StandardTreeStore').getNodeById(id);
+											    	for(var i=0;i<arr.length;i++){
+							                			node.appendChild(arr[i]);
+											    	}
+										    	}
+										    },
+										    failure: function(response, opts) {
+										    	Ext.get(document.body).unmask(); 
+								             	Ext.Msg.alert("获取直接子节点出错");
+								            }
+										});
+				                	}
+				                }
 //						        afterrender : {
 //						        	fn: me.afterrender,
 //						            scope: me
@@ -676,6 +704,11 @@ Ext.define('MyApp.view.Base', {
          });
  	},
 	PayAction: function (auth, onum, title, amount,callbackhost,paymentdomain,busttype) { 
+		//需要配置出来的东西 
+		//callbackhost
+		//paymentdomain
+			//var callbackhost="m.ctrip.com";
+			//var paymentdomain="https://secure.ctrip.com";
             var sback, pback; 
             var host = "http://" + callbackhost; 
             sback = "/webapp/lipin/#booking.success?onum=" + onum; 
@@ -692,9 +725,12 @@ Ext.define('MyApp.view.Base', {
                 amount: amount 
             }; 
             if (onum != "") { 
+                //bustype:业务类型token:身份验证数据sback:支付成功回调页面oid:订单号pback:订单详情回调地址 
                 tokenJson = encodeURIComponent(this.Base64Enocde(JSON.stringify(tokenJson))); 
+                //tokenJson = tokenJson.toString(); 
                 var QueryString = ["bustype="+busttype+"&oid=", onum, "&token=", tokenJson].join(""); 
                 window.open( paymentdomain + "/webapp/payment/index.html#index?" + QueryString); 
+                //this.jump(); 
             } 
      },
 	Base64Enocde:function(input) {  
