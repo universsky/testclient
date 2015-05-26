@@ -14,19 +14,21 @@ Ext.define('MyApp.store.PreServiceTreeStore', {
             proxy: {
                 type: 'ajax',
                 api: {
-                    read: 'job/gettree'                
+                    read: 'job/getTreeChildNodes'                
                 },
                 reader: {
                     type: 'json',
                     messageProperty: 'msg'
                 },
                 extraParams:{
-                	rootName:''
+                	topPath:''
                 }
             },
+            autoLoad:false,
+            autoSync:false,
             clearOnLoad : true,
             clearRemovedOnLoad:true,
-            buffered: false,
+            buffered: true,
         }, cfg)]);
     }
 });
