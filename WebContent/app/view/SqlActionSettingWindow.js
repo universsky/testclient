@@ -295,9 +295,13 @@ Ext.define('MyApp.view.SqlActionSettingWindow', {
     			    		Ext.Msg.alert('提示','Sql不能为空');
     			    		return;
     			    	}
-    			    	if(Ext.getCmp('TextAreaSql').getValue().toUpperCase().indexOf('SELECT ') != -1){
-    			    		Ext.Msg.alert('提示','不能包含查询语句！');
-    			    		return;
+    			    	var sqls=Ext.getCmp('TextAreaSql').getValue().toUpperCase().split(';');
+    			    	for(var i=0;i<sqls.length;i++){
+    			    		if(sqls[i].trim().indexOf('SELECT ') == 0){
+    			    			Ext.Msg.alert('提示','不能包含查询语句！');
+        			    		return;
+    			    		}
+    			    		
     			    	}
                     	Ext.Ajax.request({
 	        				url:"job/saveTestAction",
