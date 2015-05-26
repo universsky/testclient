@@ -33,8 +33,50 @@ Ext.define('MyApp.view.AddItemWindow', {
                             	var form=Ext.getCmp('AddItemForm').getForm();
                             	var folder=form.findField('folderName').getValue();
                             	if(form.isValid()){
-                            		var children=Ext.getCmp('AddItemForm').theNode.childNodes;
                             		var ishttp=Ext.getCmp('Base').IsHttpCase;
+                            		var suffix=ishttp?"-leaf":"-t";
+                            		var path=Ext.getCmp('AddItemForm').theNode.raw.folderName+"/"+folder+suffix;
+                            		Ext.Ajax.request( {  
+										url : 'job/addNode',
+										params : {
+											folderName : path
+										},  
+									    success : function(response, options) {
+									    	var json=JSON.parse(response.responseText);
+									    	if(json.success){
+									    		var childnode={};
+			                                	if(suffix=="-t"){
+			                                		childnode={
+			                                			id:path.replace('/','>'),
+			                                		    text:folder,
+			                                		    leaf:true,
+			                                		    folderName:path,
+			                                		    iconCls:'tcpicon',
+			                                    	};
+			                                	}else{
+			                                		childnode={
+			                                			id:path.replace('/','>'),
+			                                		    text:folder,
+			                                		    leaf:true,
+			                                		    folderName:path,
+			                                    	};
+			                                	}
+			                                	Ext.getCmp('AddItemForm').theNode.insertChild(0,childnode);
+			                                	Ext.getCmp('AddItemForm').theNode.expand();
+			                                	me.close();
+									    	}else{
+									    		Ext.Msg.alert("错误",json.msg);
+									    	}
+									    },  
+									    failure: function(response, opts) {
+							             	Ext.Msg.alert("错误","插入测试失败");
+							            }
+									});
+                            		
+                            		
+                            		
+                            		var children=Ext.getCmp('AddItemForm').theNode.childNodes;
+                            		
                             		for(var i=0;i<children.length;i++){
                             			if(children[i].get("leaf")){
                             				var nodeid=children[i].get("id").toLowerCase();
@@ -45,29 +87,9 @@ Ext.define('MyApp.view.AddItemWindow', {
                         					}
                             			}
                             		}
-                            		var suffix=ishttp?"-leaf":"-t";
-                            		var path=Ext.getCmp('AddItemForm').theNode.raw.folderName+"/"+folder+suffix;
+                            		
                                 	
-                                	var childnode={};
-                                	if(suffix=="-t"){
-                                		childnode={
-                                			id:path.replace('/','>'),
-                                		    text:folder,
-                                		    leaf:true,
-                                		    folderName:path,
-                                		    iconCls:'tcpicon',
-                                    	};
-                                	}else{
-                                		childnode={
-                                			id:path.replace('/','>'),
-                                		    text:folder,
-                                		    leaf:true,
-                                		    folderName:path,
-                                    	};
-                                	}
-                                	Ext.getCmp('AddItemForm').theNode.insertChild(0,childnode);
-                                	Ext.getCmp('AddItemForm').theNode.expand();
-                                	me.close();
+                                	
                                 	
 //                                	thestore.proxy.extraParams={
 //                                    		folderName:path
@@ -80,25 +102,7 @@ Ext.define('MyApp.view.AddItemWindow', {
 //                                			thestore.load();
 //                                		}
 //                                	});
-                                	Ext.Ajax.request( {  
-										url : 'job/addNode',
-										params : {
-											folderName : path
-										},  
-									    success : function(response, options) {
-//									    	Ext.Ajax.request( {  
-//												url : 'job/subscribleQueue',
-//											    success : function(response, options) {
-//											    },  
-//											    failure: function(response, opts) {
-//									             	console.log("错误","插入队列失败");
-//									            }
-//											});
-									    },  
-									    failure: function(response, opts) {
-							             	Ext.Msg.alert("错误","插入测试失败");
-							            }
-									});
+                                	
                             	}
                             },
                             text: '新建'
