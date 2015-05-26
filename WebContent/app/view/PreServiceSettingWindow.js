@@ -20,6 +20,7 @@ Ext.define('MyApp.view.PreServiceSettingWindow', {
 	    	items: [
 	    	{
 	    		xtype: 'treepanel',
+	    		id:'PreServiceTree',
 	    		title: '选择其它服务接口',
 	    		flex: 10,
 	    		store: 'PreServiceTreeStore',
@@ -41,6 +42,34 @@ Ext.define('MyApp.view.PreServiceSettingWindow', {
 	                		isTestSelected = false;
     	    			}
 	                	Ext.getCmp('SavePreServiceSettingBtn').disabled=!isTestSelected;
+	                },
+	                beforeitemexpand : function ( node, eOpts ){
+	                	if(node.childNodes.length==0){
+	                		Ext.Ajax.request( {
+		                		loadMask: true,
+								url : 'job/getTreeChildNodes',
+								params : {  
+									topPath : node.raw.folderName,
+									node : node.raw.folderName
+								},
+							    success : function(response, options) {
+							    	Ext.get(document.body).unmask(); 
+							    	var arr=JSON.parse(response.responseText);
+							    	var parts=arr[0].id.split(">");
+							    	var id=arr[0].id.replace(">"+parts[parts.length-1],"");
+							    	if(id.indexOf(">")>0){
+							    		var node=Ext.getStore('PreServiceTreeStore').getNodeById(id);
+								    	for(var i=0;i<arr.length;i++){
+				                			node.appendChild(arr[i]);
+								    	}
+							    	}
+							    },
+							    failure: function(response, opts) {
+							    	Ext.get(document.body).unmask(); 
+					             	Ext.Msg.alert("获取直接子节点出错");
+					            }
+							});
+	                	}
 	                }
 	            }
 	    	},
