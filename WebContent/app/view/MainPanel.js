@@ -152,7 +152,7 @@ Ext.define('MyApp.view.MainPanel', {
     	                            text:'service action',  
     	                            handler: function(){
 		        						Ext.getCmp('MainPanel').ActionType='setup';
-		        						Ext.getStore('ServiceActionTreeStore').proxy.extraParams.rootName=Ext.getCmp('Base').RootName;
+		        						Ext.getStore('ServiceActionTreeStore').proxy.extraParams.topPath=Ext.getCmp('Base').RootName;
 		        						Ext.getStore('ServiceActionTreeStore').load();
 		        						Ext.widget('ServiceActionWindow').show();	
 		        					}
@@ -178,7 +178,7 @@ Ext.define('MyApp.view.MainPanel', {
     	                            text:'service action',  
     	                            handler: function(){
 		        						Ext.getCmp('MainPanel').ActionType='teardown';
-		        						Ext.getStore('ServiceActionTreeStore').proxy.extraParams.rootName=Ext.getCmp('Base').RootName;
+		        						Ext.getStore('ServiceActionTreeStore').proxy.extraParams.topPath=Ext.getCmp('Base').RootName;
 		        						Ext.getStore('ServiceActionTreeStore').load();
 		        						Ext.widget('ServiceActionWindow').show();	
 		        					}
@@ -297,7 +297,7 @@ Ext.define('MyApp.view.MainPanel', {
 											store:'CheckPointResult',
 											scroll:'both',
 											autoFill : true,
-								            		stripeRows : true,
+								            stripeRows : true,
 											columns:[
 												{
 													xtype: 'gridcolumn',
