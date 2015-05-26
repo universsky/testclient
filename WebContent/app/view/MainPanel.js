@@ -285,16 +285,19 @@ Ext.define('MyApp.view.MainPanel', {
 								{
 									xtype:'container',
 									flex:2,
-//									layout: {
-//									    type: 'fit'
-//									},
+									layout: {
+									    type: 'fit',
+									    align:'stretch'
+									},
 									items:[
 										{
 											xtype:'gridpanel',
 											id:'CheckPointResultGrid',
 											title:'检查点结果',
 											store:'CheckPointResult',
-											scroll:'both ',
+											scroll:'both',
+											autoFill : true,
+								            		stripeRows : true,
 											columns:[
 												{
 													xtype: 'gridcolumn',
