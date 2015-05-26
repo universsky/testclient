@@ -1,34 +1,37 @@
-Ext.define('MyApp.store.PreServiceTreeStore', {
-	extend: 'Ext.data.TreeStore',
-	constructor: function(cfg) {
+Ext.define('MyApp.store.SelectedTreeStore', {
+    extend: 'Ext.data.TreeStore',
+
+    constructor: function(cfg) {
         var me = this;
         cfg = cfg || {};
         me.callParent([Ext.apply({
-        	storeId:'PreServiceTreeStore',
+            storeId: 'SelectedTreeStore',
+            clearOnLoad : true,
+            clearRemovedOnLoad:true,
+            buffered: false,
             root: {
                 text: '根节点',
                 id: 'root',
-                path:'root',
-                expanded: true
-            }, 
+                folderName:'root',
+                draggable: false, 
+            },
             proxy: {
-                type: 'ajax',
+            	type: 'ajax',
                 api: {
-                    read: 'job/getTreeChildNodes'                
+                    read: 'job/getSelectedTree'                
+                },
+                actionMethods: {
+                    read : 'POST'
                 },
                 reader: {
                     type: 'json',
                     messageProperty: 'msg'
                 },
                 extraParams:{
-                	topPath:''
+                	rootName:'',
+                	testset:[]
                 }
-            },
-            autoLoad:false,
-            autoSync:false,
-            clearOnLoad : true,
-            clearRemovedOnLoad:true,
-            buffered: true,
+            }
         }, cfg)]);
     }
 });
