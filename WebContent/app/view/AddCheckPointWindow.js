@@ -7,7 +7,8 @@ Ext.define('MyApp.view.AddCheckPointWindow', {
     width: 800,
     modal:true,
     layout: {
-        type: 'fit'
+        type: 'fit',
+        align:'stretch'
     },
     title: '配置检查点',
     resizable:false,
@@ -21,7 +22,66 @@ Ext.define('MyApp.view.AddCheckPointWindow', {
                 id: 'AddCheckPointGrid',
                 title: '',
                 store: 'CheckPoint',
+                scroll:'both',
+				autoFill : true,
+	            stripeRows : true,
                 columns: [
+                {
+                    xtype: 'gridcolumn',
+					flex:6,
+                    dataIndex: 'name',
+                    text: '名称',
+                    editor: {
+                        xtype: 'textfield'
+                    },
+                    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+                    	return value.replace(new RegExp("<","gm"),"&lt;");
+                    }
+                },
+                {
+                    xtype: 'gridcolumn',
+                    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+
+                        if(value==null || value==""){
+                            return "请选择";
+                        }else{
+                            return value;
+                        }
+                    },
+                    flex: 4,
+                    dataIndex: 'type',
+                    text: '类型',
+                    editor: {
+                        xtype: 'combobox',
+                        editable:false,
+                        id:'CheckPointType',
+                        store: ['contain','pattern','sql','js expression'],
+                        listeners: {
+                        	'change': function(that, newValue, oldValue, eOpts){
+                        		if('sql'==newValue){
+                        			Ext.getCmp('Base').timeStamp=new Date().getTime();
+                        			Ext.widget('SqlVerificationSettingWindow').show();
+                        		}else if('js expression'==newValue){
+                        			Ext.widget('JsExpressionCheckpointSettingWindow').show();
+                        		}
+                        	}
+                        }
+                    }
+                },
+                {
+                    xtype: 'gridcolumn',
+                    dataIndex: 'checkInfo',
+                    text: '检查字符串',
+                    flex: 14,
+                    editor: {
+                        xtype: 'textarea',
+                        id:'CheckInfoTextArea',
+ 						height:100
+                    },
+                    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+                    	return value.replace(new RegExp("<","gm"),"&lt;");
+                    }
+                },
                 {
                     xtype: 'actioncolumn',
                     flex:1,
@@ -46,62 +106,6 @@ Ext.define('MyApp.view.AddCheckPointWindow', {
                             tooltip: 'delete'
                         }
                     ]
-                },
-                {
-                    xtype: 'gridcolumn',
-					flex:3,
-                    dataIndex: 'name',
-                    text: '名称',
-                    editor: {
-                        xtype: 'textfield'
-                    },
-                    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-                    	return value.replace(new RegExp("<","gm"),"&lt;");
-                    }
-                },
-                {
-                    xtype: 'gridcolumn',
-                    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-
-                        if(value==null || value==""){
-                            return "请选择";
-                        }else{
-                            return value;
-                        }
-                    },
-                    flex: 2,
-                    dataIndex: 'type',
-                    text: '类型',
-                    editor: {
-                        xtype: 'combobox',
-                        editable:false,
-                        id:'CheckPointType',
-                        store: ['contain','pattern','sql','js expression'],
-                        listeners: {
-                        	'change': function(that, newValue, oldValue, eOpts){
-                        		if('sql'==newValue){
-                        			Ext.getCmp('Base').timeStamp=new Date().getTime();
-                        			Ext.widget('SqlVerificationSettingWindow').show();
-                        		}else if('js expression'==newValue){
-                        			Ext.widget('JsExpressionCheckpointSettingWindow').show();
-                        		}
-                        	}
-                        }
-                    }
-                },
-                {
-                    xtype: 'gridcolumn',
-                    dataIndex: 'checkInfo',
-                    text: '检查字符串',
-                    flex: 8,
-                    editor: {
-                        xtype: 'textarea',
-                        id:'CheckInfoTextArea',
- 						height:100
-                    },
-                    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-                    	return value.replace(new RegExp("<","gm"),"&lt;");
-                    }
                 }],
                 dockedItems: [
                 {
@@ -125,6 +129,7 @@ Ext.define('MyApp.view.AddCheckPointWindow', {
                         {
                             xtype: 'button',
                             handler: function(button, event) {
+                            	Ext.getStore('CheckPoint').proxy.extraParams.folderName=Ext.getCmp('Base').folderName;
                                 Ext.getStore('CheckPoint').load();
                             },
                             icon: 'image/refresh.png',
@@ -146,6 +151,7 @@ Ext.define('MyApp.view.AddCheckPointWindow', {
             	plugins: [
                 Ext.create('Ext.grid.plugin.RowEditing', {
                     pluginId: 'RowEditPlugin',
+                    autoCancel:true,
                     listeners: {
                         edit: {
                             fn: me.onRowEditingEdit,
@@ -156,8 +162,8 @@ Ext.define('MyApp.view.AddCheckPointWindow', {
                 ]}
             ],
             listeners: {
-                activate: {
-                    fn: me.onSuiteManagementActivate,
+                show: {
+                    fn: me.onShow,
                     scope: me
                 }
             }
@@ -171,17 +177,17 @@ Ext.define('MyApp.view.AddCheckPointWindow', {
             success:function(){
                 if(Ext.getCmp('CheckPointType').getValue()=='sql'){
                 	Ext.getCmp('AddCheckPointWindow').close();
-                }else
+                }else{
+                	Ext.getStore('CheckPoint').proxy.extraParams.folderName=Ext.getCmp('Base').folderName;
                 	Ext.getStore('CheckPoint').load();
+                }
             }
         });
 
     },
     
-    onSuiteManagementActivate: function(window, eOpts) {
-    	console.log('check point window is actived');
+    onShow: function(window, eOpts) {
 		Ext.getStore('CheckPoint').proxy.extraParams.folderName=Ext.getCmp('Base').folderName;
-		console.log(Ext.getStore('CheckPoint').proxy.extraParams.folderName);
 		Ext.getStore('CheckPoint').load();
     }    
     
