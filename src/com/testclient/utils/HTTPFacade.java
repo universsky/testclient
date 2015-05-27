@@ -339,8 +339,8 @@ public class HTTPFacade {
 			paramstring = this.url + "&";
 		}
 		paramstring += this.queryString;
-		if (paramstring.endsWith("?")) {
-			paramstring = StringUtils.substringBeforeLast(paramstring, "?");
+		if (paramstring.endsWith("&")) {
+			paramstring = StringUtils.substringBeforeLast(paramstring, "&");
 		}
 		PostMethod method = new PostMethod(paramstring);
 		Reporter.log("post method start。url is " + paramstring, true);
