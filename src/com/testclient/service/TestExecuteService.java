@@ -1,4 +1,4 @@
-package ccom.testclient.service;
+package com.testclient.service;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -25,68 +27,111 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ccom.testclient.enums.ActionFileName;
-import ccom.testclient.enums.CheckPointResult;
-import ccom.testclient.enums.CheckPointType;
-import ccom.testclient.enums.HistoryFolderName;
-import ccom.testclient.enums.LoopParameterNameInForm;
-import ccom.testclient.enums.PreConfigType;
-import ccom.testclient.enums.PreReqPara;
-import ccom.testclient.enums.SeperatorDefinition;
-import ccom.testclient.enums.TestStatus;
-import ccom.testclient.factory.JsonObjectMapperFactory;
-import ccom.testclient.httpmodel.CheckPointItem;
-import ccom.testclient.httpmodel.Json;
-import ccom.testclient.httpmodel.PreConfigItem;
-import ccom.testclient.httpmodel.ServerItem;
-import ccom.testclient.httpmodel.ServiceBoundDataItem;
-import ccom.testclient.httpmodel.SqlEntity;
-import ccom.testclient.httpmodel.TestResultItem;
-import ccom.testclient.model.CheckPointContianer;
-import ccom.testclient.model.HttpTarget;
-import ccom.testclient.model.InvokeRequest;
-import ccom.testclient.model.InvokeResponse;
-import ccom.testclient.model.KeyValue;
-import ccom.testclient.model.Parameter;
-import ccom.testclient.model.PreConfigContainer;
-import ccom.testclient.model.SocketTarget;
-import ccom.testclient.model.SqlQueryReturn;
-import ccom.testclient.utils.Auto;
-import ccom.testclient.utils.FileNameUtils;
-import ccom.testclient.utils.HTTPFacade;
-import ccom.testclient.utils.JdbcUtils;
-import ccom.testclient.utils.MyFileUtils;
-import ccom.testclient.utils.SocketOperationUtils;
-import ccom.testclient.utils.TemplateUtils;
+import com.testclient.enums.ActionFileName;
+import com.testclient.enums.ApiKeyword;
+import com.testclient.enums.CheckPointResult;
+import com.testclient.enums.CheckPointType;
+import com.testclient.enums.HistoryFolderName;
+import com.testclient.enums.LoopParameterNameInForm;
+import com.testclient.enums.PreConfigType;
+import com.testclient.enums.SeperatorDefinition;
+import com.testclient.enums.TestStatus;
+import com.testclient.factory.JsonObjectMapperFactory;
+import com.testclient.httpmodel.CheckPointItem;
+import com.testclient.httpmodel.Json;
+import com.testclient.httpmodel.PreConfigItem;
+import com.testclient.httpmodel.ServerItem;
+import com.testclient.httpmodel.ServiceBoundDataItem;
+import com.testclient.httpmodel.SqlEntity;
+import com.testclient.httpmodel.TestResultItem;
+import com.testclient.model.CheckPointContianer;
+import com.testclient.model.HttpTarget;
+import com.testclient.model.InvokeRequest;
+import com.testclient.model.InvokeResponse;
+import com.testclient.model.KeyValue;
+import com.testclient.model.Parameter;
+import com.testclient.model.PreConfigContainer;
+import com.testclient.model.SocketTarget;
+import com.testclient.model.SqlQueryReturn;
+import com.testclient.utils.Auto;
+import com.testclient.utils.FileNameUtils;
+import com.testclient.utils.HTTPFacade;
+import com.testclient.utils.JdbcUtils;
+import com.testclient.utils.MyFileUtils;
+import com.testclient.utils.SocketOperationUtils;
+import com.testclient.utils.TemplateUtils;
 
 @Service("testExecuteService")
 public class TestExecuteService {
 	private static final Logger logger = Logger.getLogger(TestExecuteService.class);
 	@Autowired
+	BatchTestService batchTestService;
+	@Autowired
 	OutputParameterService outputParameterService;
 	@Autowired
 	SocketOperationUtils socketOperationUtils;
 	
-	public Json executeTest(Map<String, Object> request) {
-		Json j=new Json();
-		String path = request.get("__HiddenView_path").toString();
-		Map<String, Object> datamap=getParametersFromPreConfigFile(path,request);
-		request.putAll(datamap);
-		request=getRequestParameterMap(request);
-		TestResultItem testresult = getTestResultItem(path,request);
-		if(!testresult.getResult().equals(TestStatus.exception)){
-			getCheckpointsAndResultFromFile(path, request, testresult.getResponseInfo(),testresult);
-			j.setSuccess(true);
-		}else{
-			j.setMsg("执行异常：\n" + testresult.getComment());
+	
+	
+	public Json executeTestInFront(HttpServletRequest request) {
+		Json j = new Json();
+		List<TestResultItem> objlist=new ArrayList<TestResultItem>();
+		Map requestmap =new HashMap();
+		try{
+			String path = request.getParameter("__HiddenView_path");
+	        String looptimes=(String)request.getParameterMap().get(LoopParameterNameInForm.name);
+	        looptimes=looptimes!=null?looptimes:"1";
+	        String[] loopparas=looptimes.split(SeperatorDefinition.seperator);
+	        looptimes=loopparas[0];
+	        if(!looptimes.isEmpty() && StringUtils.isNumeric(looptimes)){
+	        	requestmap=getRequestParameterMap(request,path);
+	        	for(int i=0;i<Integer.parseInt(looptimes);i++){
+	        		try{
+	        			if(loopparas.length>1)
+			        		Thread.sleep(Integer.parseInt(StringUtils.isNumeric(loopparas[1])?loopparas[1]:"1"));
+		        		
+	        			setupAction(path,requestmap);
+						
+						TestResultItem testresult = getTestResultItem(path,requestmap);
+						if(!testresult.getResult().equals(TestStatus.exception)){
+							getCheckpointsAndResultFromFile(path, requestmap, testresult.getResponseInfo(),testresult);
+							j.setSuccess(true);
+						}else{
+							j.setMsg("执行异常：\n" + testresult.getComment());
+							j.setSuccess(false);
+						}
+						j.setObj(testresult);
+		        	}catch(Exception e){
+		        		j.setMsg(e.getClass()+e.getMessage());
+		        		j.setSuccess(false);
+		        	}finally{
+		    			try{
+		    				TestResultItem result=(TestResultItem)j.getObj();
+		    				objlist.add(result);
+		    				
+		    				teardownAction(path,requestmap,result.getResponseInfo());
+		    				
+		    			}catch(Exception e){
+		    				j.setMsg(e.getClass()+e.getMessage());
+		    				j.setSuccess(false);
+		    			}
+		    		}
+	        	}
+	        	j.setObj(objlist);
+	        }else{
+	        	j.setMsg("循环次数必须为自然数！");
+	        	j.setSuccess(false);
+	        }
+		}catch(Exception e){
+			j.setMsg(e.getClass()+e.getMessage());
+			logger.error(e.getClass()+e.getMessage());
 			j.setSuccess(false);
 		}
-		j.setObj(testresult);
 		return j;
 	}
 	
-	public void setupAction(String testPath){
-		executeSqlAction(testPath,ActionFileName.setup);
+	public void setupAction(String testPath,Map requestmap){
+		executeSqlAction(testPath,ActionFileName.setup,requestmap);
 		executeServiceAction(testPath,ActionFileName.setup);
 	}
 	
@@ -100,21 +145,19 @@ public class TestExecuteService {
 			File f=new File(testPath+"/"+actionType+"2");
 			if(f.exists()){
 				String serviceCalled=FileUtils.readFileToString(f);
-				Map request = getRequestParameterMap(serviceCalled);
-				executeServiceRequest(serviceCalled,request);
+				batchTestService.executeTestByPath(serviceCalled);
 			}
 		} catch (IOException e) {
 			logger.error(e.getClass()+e.getMessage());
 		}
 	}
 	
-	private int executeSqlAction(String testPath, String actionType){
+	private int executeSqlAction(String testPath, String actionType,Map reqParas){
 		File f=new File(testPath+"/"+actionType);
 		if(f.exists()){
 			try {
 				String sqlactionstr = FileUtils.readFileToString(f, "UTF-8");
-				if(sqlactionstr.contains("[[") && sqlactionstr.contains("]]"))
-					sqlactionstr=processEnv(loadEnv(testPath),sqlactionstr);
+				sqlactionstr = parseText(sqlactionstr,testPath,reqParas);
 				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
 				SqlEntity e = mapper.readValue(sqlactionstr, SqlEntity.class);
 				String source=e.getSource();
@@ -144,8 +187,7 @@ public class TestExecuteService {
 		if(f.exists()){
 			try {
 				String sqlactionstr = FileUtils.readFileToString(f, "UTF-8");
-				if(sqlactionstr.contains("[[") && sqlactionstr.contains("]]"))
-					sqlactionstr=processEnv(loadEnv(testPath),sqlactionstr);
+				sqlactionstr = parseText(sqlactionstr,testPath,reqParas);
 				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
 				SqlEntity e = mapper.readValue(sqlactionstr, SqlEntity.class);
 				String source=e.getSource();
@@ -181,12 +223,8 @@ public class TestExecuteService {
 			if(checkpoint.exists()){
 				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
 				String ckstr = FileUtils.readFileToString(checkpoint, "UTF-8");
-				CheckPointContianer c;
-				if(ckstr.indexOf("[[")>0 && ckstr.indexOf("]]")>ckstr.indexOf("[[")){
-					ckstr=processEnv(loadEnv(foldername),ckstr);
-					c = mapper.readValue(ckstr, CheckPointContianer.class);
-				}else
-					c = mapper.readValue(checkpoint, CheckPointContianer.class);
+				ckstr=parseText(ckstr,foldername,parameters);
+				CheckPointContianer c = mapper.readValue(checkpoint, CheckPointContianer.class);
 				testresult.setResult(TestStatus.pass);
 				if(c.getCheckPoint().entrySet().size()==0){
 					testresult.setResult(TestStatus.invalid);
@@ -197,11 +235,10 @@ public class TestExecuteService {
 					CheckPointItem item = new CheckPointItem();
 					item=entry.getValue();
 					String checktype=item.getType();
-					//resolve string if contains parameter
-					String checkInfo = TemplateUtils.getString(item.getCheckInfo(),parameters);
+					String checkInfo=item.getCheckInfo();
 					item.setCheckInfo(checkInfo);
 					if(checktype.equals(CheckPointType.CheckSql)){
-						checkInfo=this.processOutputParameter(foldername, responseinfo, checkInfo);
+						checkInfo=processOutputParameter(foldername, responseinfo, checkInfo);
 						addCheckPointItemsForDBVerification(testresult,checkInfo,responseinfo);
 					}else if(checktype.equals(CheckPointType.CheckJsExp)){
 						String[] arr=checkInfo.split(SeperatorDefinition.checkInfoSeperator);
@@ -372,6 +409,21 @@ public class TestExecuteService {
 		return response;
 	}
 	
+	private String parseText(String val,String path,Map<String,Object> request){
+		try {
+			if(val.contains("[[") && val.contains("]]"))
+				val=processEnv(loadEnv(path),val);
+			//if defaultvalue is returned function of Auto class.
+			val = TemplateUtils.getString(val, request);
+			val = parseOtherServiceReqParameter(val);
+			val = parseOtherServiceOutParameter(val);
+			return val;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			return "";
+		}
+	}
+	
 	//for back-end test execution usage
 	public Map<String,Object> getRequestParameterMap(String path){
 		Map<String,Object> request=new HashMap<String,Object>();
@@ -391,15 +443,7 @@ public class TestExecuteService {
 			}
 			for(Parameter p : paras.values()){
 				String val=p.getDefaultValue();
-				//if defaultvalue is returned function of Auto class.
-				val = TemplateUtils.getString(val, request);
-				if(p.getType().equalsIgnoreCase("loop")){
-					p.setName(LoopParameterNameInForm.name);
-				}
-				////compatible with old design
-				else if(p.getType().equalsIgnoreCase("service")){
-					val=getParameterValueAfterRequest(p.getExtraInfo());
-				}
+				val=parseText(val,path,request);
 				request.put(p.getName(), val);
 			}
 			Map<String, Object> datamap=getParametersFromPreConfigFile(path,request);
@@ -412,41 +456,48 @@ public class TestExecuteService {
 	}
 	
 	//for submit form usage
-	private Map<String,Object> getRequestParameterMap(Map<String, Object> request){
+	private Map<String,Object> getRequestParameterMap(HttpServletRequest request,String path){
+		Map requestmap =new HashMap();
 		try{
-			for(Entry<String, Object> e : request.entrySet()){
-				String val=e.getValue().toString();
-				if(val!=null && !val.isEmpty()){
-					////compatible with old design
-					if(val.contains(SeperatorDefinition.paraForReferencedService)){
-						val=getParameterValueAfterRequest(val);
-						request.put(e.getKey(), val);
-						break;
-					}
-				}	
-			}
+			Map map=request.getParameterMap(); 
+	        Set key = map.keySet(); 
+	        requestmap.put("auto", new Auto());
+	        for(Object k: key.toArray()){ 
+	        	String parakey = k.toString(); 
+	        	String paravalue = ((String[])map.get(k))[0];
+	        	paravalue=parseText(paravalue,path,requestmap);
+	        	requestmap.put(parakey, paravalue);
+	        }
+        	Map<String, Object> datamap=getParametersFromPreConfigFile(path,requestmap);
+			requestmap.putAll(datamap);
 		}catch(Exception e){
 			logger.error(e.getClass().toString()+": "+e.getMessage());
 		}
-		return request;
+		return requestmap;
 	}
-	
-	public String parsePreServiceReqParameter(String val){
-		String value="";
-		if(StringUtils.contains(val, PreReqPara.keyword+"(")){
-			String path=StringUtils.substringBetween(val, PreReqPara.keyword+"(", ")");
+		
+	public String parseOtherServiceReqParameter(String val){
+		if(StringUtils.contains(val, ApiKeyword.preapi+"(")){
+			String path=StringUtils.substringBetween(val, ApiKeyword.preapi+"(", ")");
 			String reqpara=StringUtils.substringAfter(val, path+")").trim();
 			Map<String,Object> paras = getRequestParameterMap(path.trim());
 			for(Entry<String,Object> en : paras.entrySet()){
 				if(en.getKey().equalsIgnoreCase(reqpara)){
-					value=en.getValue().toString();
+					val=en.getValue().toString();
 					break;
 				}
 			}
-		}else{
-			value=val;
 		}
-		return value;
+		return val;
+	}
+	
+	public String parseOtherServiceOutParameter(String val){
+		if(StringUtils.contains(val, ApiKeyword.outvar+"(")){
+			String path=StringUtils.substringBetween(val, ApiKeyword.outvar+"(", ")");
+			String outpara=StringUtils.substringAfter(val, path+")").trim();
+			return processOutputParameter(path, "{{"+outpara+"}}");
+		}
+		return val;
 	}
 	
 	private Map<String,Object> getParametersFromPreConfigFile(String testPath,Map<String,Object> request){
@@ -455,8 +506,7 @@ public class TestExecuteService {
 			File f=new File(FileNameUtils.getPreConfigFilePath(testPath));	
 			if(f.exists()){
 				String preconfigstr = FileUtils.readFileToString(f, "UTF-8");
-				if(preconfigstr.contains("[[") && preconfigstr.contains("]]"))
-					preconfigstr=processEnv(loadEnv(testPath),preconfigstr);
+				preconfigstr=parseText(preconfigstr,testPath,request);
 				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
 				PreConfigContainer c = mapper.readValue(preconfigstr, PreConfigContainer.class);
 				for(Entry<String,PreConfigItem> entry:c.getPreConfig().entrySet()){
@@ -485,25 +535,6 @@ public class TestExecuteService {
 						String password=arr[4];
 						String db=arr[5];
 						String sql=arr[6];
-						if(sql.contains("${")){
-							try {
-								sql = TemplateUtils.getString(sql, request);
-							} catch (Exception e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-//						Map<String,String> evnmap=loadEnv(testPath);
-//						if(server.startsWith("[["))
-//							server=processVariableInEnv(evnmap,server);
-//						if(port.startsWith("[["))
-//							port=processVariableInEnv(evnmap,port);
-//						if(username.startsWith("[["))
-//							username=processVariableInEnv(evnmap,username);
-//						if(password.startsWith("[["))
-//							password=processVariableInEnv(evnmap,password);
-//						if(db.startsWith("[["))
-//							db=processVariableInEnv(evnmap,db);
 						String[] configs=arr[7].split(SeperatorDefinition.queryBoundRow);
 						SqlQueryReturn sqr= new JdbcUtils(datasource,server,port,username,password,db).getReturnedColumnsAndRows(sql);
 						for(String item : configs){
@@ -903,7 +934,7 @@ public class TestExecuteService {
 		int pos1=content.indexOf("{{");
 		int pos2=content.indexOf("}}");
 		String responseinfo="";
-		if(pos2>pos1 && pos1>0){
+		if(pos2>pos1 && pos1>=0){
 			Map request = getRequestParameterMap(testPath);
 			TestResultItem item = getTestResultItem(testPath,request);
 			if(!item.getResult().equals(TestStatus.exception)){
@@ -957,4 +988,6 @@ public class TestExecuteService {
 		System.out.println(key);
 		
 	}
+	
+	
 }
