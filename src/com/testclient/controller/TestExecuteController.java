@@ -1,4 +1,4 @@
-package com.testclient.controller;
+package ctripwireless.testclient.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,15 +24,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.testclient.enums.LoopParameterNameInForm;
-import com.testclient.enums.SeperatorDefinition;
-import com.testclient.enums.TestStatus;
-import com.testclient.httpmodel.CheckPointItem;
-import com.testclient.httpmodel.Json;
-import com.testclient.httpmodel.TestResultItem;
-import com.testclient.service.TestExecuteService;
-import com.testclient.utils.Auto;
-import com.testclient.utils.TemplateUtils;
+import ctripwireless.testclient.enums.LoopParameterNameInForm;
+import ctripwireless.testclient.enums.SeperatorDefinition;
+import ctripwireless.testclient.enums.TestStatus;
+import ctripwireless.testclient.httpmodel.CheckPointItem;
+import ctripwireless.testclient.httpmodel.Json;
+import ctripwireless.testclient.httpmodel.TestResultItem;
+import ctripwireless.testclient.service.TestExecuteService;
+import ctripwireless.testclient.utils.Auto;
+import ctripwireless.testclient.utils.TemplateUtils;
 
 @Controller
 public class TestExecuteController {
@@ -45,60 +45,7 @@ public class TestExecuteController {
 	@ResponseBody
 	public Json executeTest(HttpServletRequest request, HttpServletResponse response) {
 		Json j = new Json();
-		String path = "";
-		List<TestResultItem> objlist=new ArrayList<TestResultItem>();
-		Map requestmap =new HashMap();
-		try{
-			Map map=request.getParameterMap(); 
-	        Set key = map.keySet(); 
-	        requestmap.put("auto", new Auto());
-	        for(Object aaa: key.toArray()){ 
-	        	String parakey = aaa.toString(); 
-	        	String paravalue = ((String[])map.get(aaa))[0];
-	        	String paraval=testExecuteService.parsePreServiceReqParameter(paravalue);
-	        	//if defaultvalue is returned function of Auto class.
-	        	if(paravalue.equals(paraval)){
-	        		paraval = TemplateUtils.getString(paravalue, requestmap);
-	        	}
-	        	requestmap.put(parakey, paraval);
-	        }
-	        path = requestmap.get("__HiddenView_path").toString();
-	        String looptimes=(String)requestmap.get(LoopParameterNameInForm.name);
-	        looptimes=looptimes!=null?looptimes:"1";
-	        String[] loopparas=looptimes.split(SeperatorDefinition.seperator);
-	        looptimes=loopparas[0];
-	        if(!looptimes.isEmpty() && StringUtils.isNumeric(looptimes)){
-	        	for(int i=0;i<Integer.parseInt(looptimes);i++){
-	        		try{
-	        			if(loopparas.length>1)
-			        		Thread.sleep(Integer.parseInt(StringUtils.isNumeric(loopparas[1])?loopparas[1]:"1"));
-		        		testExecuteService.setupAction(path);
-						j = testExecuteService.executeTest(requestmap);
-		        	}catch(Exception e){
-		        		j.setMsg(e.getClass()+e.getMessage());
-		        		j.setSuccess(false);
-		        	}finally{
-		    			try{
-		    				TestResultItem result=(TestResultItem)j.getObj();
-		    				objlist.add(result);
-		    				testExecuteService.teardownAction(path,requestmap,result.getResponseInfo());
-		    			}catch(Exception e){
-		    				j.setMsg(e.getClass()+e.getMessage());
-		    				j.setSuccess(false);
-		    			}
-		    		}
-	        	}
-	        	j.setObj(objlist);
-	        }else{
-	        	j.setMsg("循环次数必须为自然数！");
-	        	j.setSuccess(false);
-	        }
-		}catch(Exception e){
-			j.setMsg(e.getClass()+e.getMessage());
-			logger.error(e.getClass()+e.getMessage());
-			j.setSuccess(false);
-		}
-		return j;
+		return testExecuteService.executeTestInFront(request);
 	}
 
 	@RequestMapping(value="/generateHistoryFile", method=RequestMethod.POST )
