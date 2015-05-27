@@ -445,43 +445,9 @@ Ext.define('MyApp.view.Base', {
 	        }
 	    });
 	},
-	drop : function(node, oldParent, newParent, index, eOpts ){
+    drop : function(node, oldParent, newParent, index, eOpts ){
 		var oldPath=oldParent.records[0].raw.folderName;
-		var node=oldPath.split('/');
-		var theoldfile=node[node.length-1];
 		var newPath=newParent.raw.folderName;
-		var count=0;
-		for(var i=0;i<newParent.childNodes.length;i++){
-			var children=newParent.childNodes[i].data.id.split('>');
-			var child=children[children.length-1];
-			if(theoldfile.toLowerCase()==child.toLowerCase()){
-				if(count>0){
-					Ext.MessageBox.confirm('提示', '存在同名节点，确定要拷贝？', function(btn){
-				        if (btn === 'yes') {
-				        	Ext.Ajax.request( {  
-				    			url : 'job/copyNodeWithoutHistory',  
-				    			params : {  
-				    				srcPath : oldPath,
-				    				targetPath : newPath  
-				    			},  
-				    		    success : function(response, options) {
-				    		    	var obj=Ext.decode(response.responseText);
-				    		    	if(!obj.success)
-				    		    		Ext.Msg.alert("错误",obj.msg);
-				    		    	else
-				    		    		Ext.getStore('StandardTreeStore').load();
-				    		    },  
-				    		    failure: function(response, opts) {
-				                 	Ext.Msg.alert("错误","请求失败");
-				                }
-				    		});
-				        }
-				    });
-					return;
-				}
-				count++;
-			}
-		}
 		Ext.Ajax.request( {  
 			url : 'job/copyNodeWithoutHistory',  
 			params : {  
@@ -497,7 +463,7 @@ Ext.define('MyApp.view.Base', {
              	Ext.Msg.alert("错误","拷贝节点失败");
             }
 		});
-	},
+	},	
     itemmousedown:function(view,record, item, index, e, eOpts ){
  		Ext.getCmp('MainContainer').removeAll(false);
  		Ext.getStore('CheckPointResult').loadData([]);
