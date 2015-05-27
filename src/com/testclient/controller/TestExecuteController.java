@@ -1,4 +1,4 @@
-package ctripwireless.testclient.controller;
+package com.testclient.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,15 +24,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import ctripwireless.testclient.enums.LoopParameterNameInForm;
-import ctripwireless.testclient.enums.SeperatorDefinition;
-import ctripwireless.testclient.enums.TestStatus;
-import ctripwireless.testclient.httpmodel.CheckPointItem;
-import ctripwireless.testclient.httpmodel.Json;
-import ctripwireless.testclient.httpmodel.TestResultItem;
-import ctripwireless.testclient.service.TestExecuteService;
-import ctripwireless.testclient.utils.Auto;
-import ctripwireless.testclient.utils.TemplateUtils;
+import com.testclient.enums.LoopParameterNameInForm;
+import com.testclient.enums.SeperatorDefinition;
+import com.testclient.enums.TestStatus;
+import com.testclient.httpmodel.CheckPointItem;
+import com.testclient.httpmodel.Json;
+import com.testclient.httpmodel.TestResultItem;
+import com.testclient.service.TestExecuteService;
+import com.testclient.utils.Auto;
+import com.testclient.utils.TemplateUtils;
 
 @Controller
 public class TestExecuteController {
