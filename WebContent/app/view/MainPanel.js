@@ -53,7 +53,7 @@ Ext.define('MyApp.view.MainPanel', {
         										testresultitemcollectionjson : Ext.encode(resultlist)
         									},
         								    success : function(response, options) {
-        								    	if(options.params.testresult.result=="invalid"){
+        								    	if(resultlist[0].result=="invalid"){
         								    		Ext.Msg.alert("警告","无效测试。请设检查点。");
         								    	}
         								    },
