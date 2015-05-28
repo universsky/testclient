@@ -134,16 +134,17 @@ Ext.define('MyApp.view.ServiceActionWindow', {
     	        },
     	        {
     	        	xtype:'label',
+    	        	draggable:true,
     	    		id:'ServiceBeCalledLabel'
     	        }]
-			},
-			{
-				xtype:'panel',
-				flex: 1,
-				layout:{
-		    		type:'hbox'
-		    	},
-		    	items:[
+	},
+	{
+		xtype:'panel',
+		flex: 1,
+		layout:{
+    		type:'hbox'
+    	},
+    	items:[
     	        {
     	            xtype: 'button',
     	            id:'SaveServiceActionBtn',
