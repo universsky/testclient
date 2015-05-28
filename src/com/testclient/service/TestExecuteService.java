@@ -414,13 +414,13 @@ public class TestExecuteService {
 			if(val.contains("[[") && val.contains("]]"))
 				val=processEnv(loadEnv(path),val);
 			//if defaultvalue is returned function of Auto class.
-			val = TemplateUtils.getString(val, request);
 			val = parseOtherServiceReqParameter(val);
 			val = parseOtherServiceOutParameter(val);
+			val = TemplateUtils.getString(val, request);
 			return val;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			return "";
+			return val;
 		}
 	}
 	
