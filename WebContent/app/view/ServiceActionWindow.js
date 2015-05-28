@@ -145,10 +145,12 @@ Ext.define('MyApp.view.ServiceActionWindow', {
 		    	},
 		    	items:[
     	        {
-    	        	xtype: 'button',
-    	        	id:'SaveServiceActionBtn',
+    	            xtype: 'button',
+    	            id:'SaveServiceActionBtn',
                     handler: function(button, event) {
-                    	Ext.Ajax.request({
+                    	if(Ext.String.endsWith(selectedTestPath,'-leaf') || Ext.String.endsWith(selectedTestPath,'-t')){
+                    		if(selectedTestPath!=Ext.getCmp("Base").folderName){
+                        		Ext.Ajax.request({
 	        				url:"job/saveServiceAction",
 	        				params: {
 	        					testPath:Ext.getCmp('Base').folderName,
@@ -162,6 +164,12 @@ Ext.define('MyApp.view.ServiceActionWindow', {
 	        			    	Ext.Msg.alert('提示','请求失败');
 	        			    }
 	        			});
+                        	}else{
+                        		Ext.Msg.alert("警告","不能引用自己！");
+                        	}
+                    	}else{
+                    		Ext.Msg.alert("警告","请选择测试节点！");
+                    	}
                     },
                     icon: 'image/save.png',
                     tooltip: '保存'
