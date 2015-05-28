@@ -224,7 +224,7 @@ public class TestExecuteService {
 				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
 				String ckstr = FileUtils.readFileToString(checkpoint, "UTF-8");
 				ckstr=parseText(ckstr,foldername,parameters);
-				CheckPointContianer c = mapper.readValue(checkpoint, CheckPointContianer.class);
+				CheckPointContianer c = mapper.readValue(ckstr, CheckPointContianer.class);
 				testresult.setResult(TestStatus.pass);
 				if(c.getCheckPoint().entrySet().size()==0){
 					testresult.setResult(TestStatus.invalid);
