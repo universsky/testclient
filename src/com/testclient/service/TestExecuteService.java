@@ -72,7 +72,6 @@ public class TestExecuteService {
 	SocketOperationUtils socketOperationUtils;
 	
 	
-	
 	public Json executeTestInFront(HttpServletRequest request) {
 		Json j = new Json();
 		List<TestResultItem> objlist=new ArrayList<TestResultItem>();
@@ -381,13 +380,11 @@ public class TestExecuteService {
 	
 	
 	private String getParameterValueAfterRequest(String extraInfo){
-		String val="";
 		String[] parainfo=extraInfo.split(SeperatorDefinition.paraForReferencedService);
 		String path=parainfo[0];
 		String lb=parainfo[1];
 		String rb=parainfo[2];
-		Map paras = getRequestParameterMap(path);
-		String res = getTestResultItem(path,paras).getResponseInfo();
+		String res = getTestResponseBody(path).getObj().toString();
 		return getParaValueFromResponse(res,lb,rb,1);
 	}
 		
@@ -446,8 +443,7 @@ public class TestExecuteService {
 				val=parseText(val,path,request);
 				request.put(p.getName(), val);
 			}
-			Map<String, Object> datamap=getParametersFromPreConfigFile(path,request);
-			request.putAll(datamap);
+			request=getParametersFromPreConfigFile(path,request);
 		}catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.error(e.getClass().toString()+": "+e.getMessage());
@@ -468,8 +464,7 @@ public class TestExecuteService {
 	        	paravalue=parseText(paravalue,path,requestmap);
 	        	requestmap.put(parakey, paravalue);
 	        }
-        	Map<String, Object> datamap=getParametersFromPreConfigFile(path,requestmap);
-			requestmap.putAll(datamap);
+	        requestmap=getParametersFromPreConfigFile(path,requestmap);
 		}catch(Exception e){
 			logger.error(e.getClass().toString()+": "+e.getMessage());
 		}
@@ -502,22 +497,21 @@ public class TestExecuteService {
 	
 	private Map<String,Object> getParametersFromPreConfigFile(String testPath,Map<String,Object> request){
 		Map<String,Object> para=new HashMap<String,Object>();
+		para.putAll(request);
 		try {
 			File f=new File(FileNameUtils.getPreConfigFilePath(testPath));	
 			if(f.exists()){
-				String preconfigstr = FileUtils.readFileToString(f, "UTF-8");
-				preconfigstr=parseText(preconfigstr,testPath,request);
 				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
-				PreConfigContainer c = mapper.readValue(preconfigstr, PreConfigContainer.class);
+				PreConfigContainer c = mapper.readValue(f, PreConfigContainer.class);
+				//默认前置service数据绑定设置中不引用输入/输出参数
 				for(Entry<String,PreConfigItem> entry:c.getPreConfig().entrySet()){
 					String type=entry.getValue().getType();
-					String setting=entry.getValue().getSetting();
 					if(type.equalsIgnoreCase(PreConfigType.service)){
+						String setting=entry.getValue().getSetting();
 						String[] arr=setting.split(SeperatorDefinition.paraForReferencedService);
 						String path=arr[0];
 						String[] configs=arr[1].split(SeperatorDefinition.queryBoundRow);
-						Map<String,Object> paras = getRequestParameterMap(path);
-						String res = getTestResultItem(path,paras).getResponseInfo();
+						String res = getTestResponseBody(path).getObj().toString();
 						for(String item : configs){
 							String[] info=item.split(SeperatorDefinition.queryBoundItem);
 							String lb=info[1];
@@ -526,7 +520,15 @@ public class TestExecuteService {
 							String value=getParaValueFromResponse(res,lb,rb,times);				
 							para.put(info[0], value);
 						}
-					}else if(type.equalsIgnoreCase(PreConfigType.query)){
+					}
+				}
+				String preconfigstr = FileUtils.readFileToString(f, "UTF-8");
+				preconfigstr=parseText(preconfigstr,testPath,para);
+				c = mapper.readValue(preconfigstr, PreConfigContainer.class);
+				for(Entry<String,PreConfigItem> entry:c.getPreConfig().entrySet()){
+					String type=entry.getValue().getType();
+					if(type.equalsIgnoreCase(PreConfigType.query)){
+						String setting=entry.getValue().getSetting();
 						String[] arr=setting.split(SeperatorDefinition.paraForReferencedService);
 						String datasource=arr[0];
 						String server=arr[1];
@@ -663,6 +665,33 @@ public class TestExecuteService {
 			testresult=getSocketTestResultItem(folderName,request);
 		}
 		return testresult;
+	}
+	
+	public Json getTestResponseBody(String path){
+		Json j=new Json();
+		Map params=new HashMap();
+		String res="";
+		try{
+			params = getRequestParameterMap(path);
+			setupAction(path,params);
+			TestResultItem tri = getTestResultItem(path,params);
+			if(!tri.getResult().equals(TestStatus.exception)){
+				j.setSuccess(true);
+				j.setObj(tri.getResponseInfo());
+				res=tri.getResponseInfo();
+			}else{
+				j.setSuccess(false);
+				j.setMsg(tri.getComment());
+				res=tri.getComment();
+			}
+		}catch(Exception ex){
+			j.setSuccess(false);
+			j.setMsg(ex.getMessage());
+			logger.error(ex);
+		}finally{
+			teardownAction(path,params,res);
+		}
+		return j;
 	}
 	
 	private TestResultItem getHttpTestResultItem(String path, Map request){
@@ -935,10 +964,9 @@ public class TestExecuteService {
 		int pos2=content.indexOf("}}");
 		String responseinfo="";
 		if(pos2>pos1 && pos1>=0){
-			Map request = getRequestParameterMap(testPath);
-			TestResultItem item = getTestResultItem(testPath,request);
-			if(!item.getResult().equals(TestStatus.exception)){
-				responseinfo=item.getResponseInfo();
+			Json j=getTestResponseBody(testPath);
+			if(j.isSuccess()){
+				responseinfo=j.getObj().toString();
 			}
 		}
 		while(pos1>=0 && pos1<pos2){
@@ -988,6 +1016,5 @@ public class TestExecuteService {
 		System.out.println(key);
 		
 	}
-	
 	
 }
