@@ -137,34 +137,39 @@ Ext.define('MyApp.view.ServiceActionWindow', {
     	        	draggable:true,
     	    		id:'ServiceBeCalledLabel'
     	        }]
-	},
-	{
-		xtype:'panel',
-		flex: 1,
-		layout:{
-    		type:'hbox'
-    	},
-    	items:[
+			},
+			{
+				xtype:'panel',
+				flex: 1,
+				layout:{
+		    		type:'hbox'
+		    	},
+		    	items:[
     	        {
-    	            xtype: 'button',
-    	            id:'SaveServiceActionBtn',
+    	        	xtype: 'button',
+    	        	id:'SaveServiceActionBtn',
                     handler: function(button, event) {
                     	if(Ext.String.endsWith(selectedTestPath,'-leaf') || Ext.String.endsWith(selectedTestPath,'-t')){
                     		if(selectedTestPath!=Ext.getCmp("Base").folderName){
-                        		Ext.Ajax.request({
-	        				url:"job/saveServiceAction",
-	        				params: {
-	        					testPath:Ext.getCmp('Base').folderName,
-	        					serviceCalled:selectedTestPath,
-	        					srvActionType: Ext.getCmp('MainPanel').ActionType
-	        				},
-	        			    success: function(response, opts) {
-	        			    	Ext.getCmp('ServiceActionWindow').close();
-	        			    },
-	        			    failure: function(response, opts) {
-	        			    	Ext.Msg.alert('提示','请求失败');
-	        			    }
-	        			});
+                    			if(Ext.getCmp('MainPanel').MixAction){
+                    				Ext.getCmp('SettingTextField').setValue(selectedTestPath);
+                    				Ext.getCmp('ServiceActionWindow').close();
+                    			}else{
+	                        		Ext.Ajax.request({
+	        	        				url:"job/saveServiceAction",
+	        	        				params: {
+	        	        					testPath:Ext.getCmp('Base').folderName,
+	        	        					serviceCalled:selectedTestPath,
+	        	        					srvActionType: Ext.getCmp('MainPanel').ActionType
+	        	        				},
+	        	        			    success: function(response, opts) {
+	        	        			    	Ext.getCmp('ServiceActionWindow').close();
+	        	        			    },
+	        	        			    failure: function(response, opts) {
+	        	        			    	Ext.Msg.alert('提示','请求失败');
+	        	        			    }
+	        	        			});
+                    			}
                         	}else{
                         		Ext.Msg.alert("警告","不能引用自己！");
                         	}
@@ -183,20 +188,23 @@ Ext.define('MyApp.view.ServiceActionWindow', {
     	        	xtype: 'button',
                     handler: function(button, event) {
                     	if(Ext.getCmp('ServiceBeCalledLabel').getEl().dom.innerText!=""){
-                    		Ext.Ajax.request({
-    	        				url:"job/cleanServiceAction",
-    	        				params: { 
-    	        					testPath: Ext.getCmp('Base').folderName,
-    	        					srvActionType: Ext.getCmp('MainPanel').ActionType
-    	        				},
-    	        			    success: function(response, opts) {
-    	        			    	Ext.getCmp('ServiceBeCalledLabel').getEl().update('');
-    	        			    },
-    	        			    failure: function(response, opts) {
-    	        			    	Ext.Msg.alert('提示','请求失败');
-    	        			    }
-    	        			});
+                    		if(!Ext.getCmp('MainPanel').MixAction){
+                    			Ext.Ajax.request({
+        	        				url:"job/cleanServiceAction",
+        	        				params: { 
+        	        					testPath: Ext.getCmp('Base').folderName,
+        	        					srvActionType: Ext.getCmp('MainPanel').ActionType
+        	        				},
+        	        			    success: function(response, opts) {
+        	        			    	Ext.getCmp('ServiceBeCalledLabel').getEl().update('');
+        	        			    },
+        	        			    failure: function(response, opts) {
+        	        			    	Ext.Msg.alert('提示','请求失败');
+        	        			    }
+        	        			});
+                    		}
                     	}
+                    	Ext.getCmp('ServiceActionWindow').close();
                     },
                     icon: 'image/clean.png',
                     tooltip: '清空'
@@ -209,22 +217,24 @@ Ext.define('MyApp.view.ServiceActionWindow', {
                         Ext.fly('SaveServiceActionBtn').setStyle({
                 			background:'white'
                 		});
-                        Ext.Ajax.request({
-	        				url:"job/getServiceAction",
-	        				params: { 
-	        					testPath: Ext.getCmp('Base').folderName,
-	        					srvActionType: Ext.getCmp('MainPanel').ActionType
-	        				},
-	        			    success: function(response, opts) {
-	        			    	var obj=JSON.parse(response.responseText).obj;
-	        			    	if(obj!=null){
-	        			    		Ext.getCmp('ServiceBeCalledLabel').getEl().update(obj);
-	        			    	}
-	        			    },
-	        			    failure: function(response, opts) {
-	        			    	Ext.Msg.alert('提示','请求失败');
-	        			    }
-	        			});
+                        if(!Ext.getCmp('MainPanel').MixAction){
+                        	Ext.Ajax.request({
+    	        				url:"job/getServiceAction",
+    	        				params: { 
+    	        					testPath: Ext.getCmp('Base').folderName,
+    	        					srvActionType: Ext.getCmp('MainPanel').ActionType
+    	        				},
+    	        			    success: function(response, opts) {
+    	        			    	var obj=JSON.parse(response.responseText).obj;
+    	        			    	if(obj!=null){
+    	        			    		Ext.getCmp('ServiceBeCalledLabel').getEl().update(obj);
+    	        			    	}
+    	        			    },
+    	        			    failure: function(response, opts) {
+    	        			    	Ext.Msg.alert('提示','请求失败');
+    	        			    }
+    	        			});
+                        }
                     },
                     scope: me
                 }
