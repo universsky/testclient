@@ -14,7 +14,7 @@
  */
 
 //@require @packageOverrides
-Ext.util.Cookies.set('MobileSvcUrl','http://10.2.9.22:8888/TestOperationService.svc/');
+Ext.util.Cookies.set('MobileSvcUrl','http://XXXX/TestOperationService.svc/');
 
 Ext.Loader.setConfig({
     enabled: true
