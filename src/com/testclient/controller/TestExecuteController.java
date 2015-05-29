@@ -106,15 +106,6 @@ public class TestExecuteController {
 	@ResponseBody
 	public Json getTestResponse(@RequestParam String path){
 		Json j=new Json();
-		Map request = testExecuteService.getRequestParameterMap(path);
-		TestResultItem item = testExecuteService.getTestResultItem(path,request);
-		if(!item.getResult().equals(TestStatus.exception)){
-			j.setObj(item.getResponseInfo());
-			j.setSuccess(true);
-		}else{
-			j.setMsg(item.getComment());
-			j.setSuccess(false);
-		}
-		return j;
+		return testExecuteService.getTestResponseBody(path);
 	}
 }
