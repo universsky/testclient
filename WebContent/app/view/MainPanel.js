@@ -54,7 +54,7 @@ Ext.define('MyApp.view.MainPanel', {
         									},
         								    success : function(response, options) {
         								    	if(resultlist[0].result=="invalid"){
-        								    		Ext.Msg.alert("警告","无效测试。请设检查点。");
+        								    		//Ext.Msg.alert("警告","无效测试。请设检查点。");
         								    	}
         								    },
         								    failure: function(response, opts) {
@@ -156,6 +156,15 @@ Ext.define('MyApp.view.MainPanel', {
 		        						Ext.getStore('ServiceActionTreeStore').load();
 		        						Ext.widget('ServiceActionWindow').show();	
 		        					}
+    	                        },
+    	                        {  
+    	                            text:'mix action',  
+    	                            handler: function(){
+		        						Ext.getCmp('MainPanel').ActionType='setup';
+		        						Ext.getStore('MixActionSetting').proxy.extraParams.testPath=Ext.getCmp('Base').folderName;
+		        				    	Ext.getStore('MixActionSetting').proxy.extraParams.action='init';
+		        						Ext.widget('MixActionSettingWindow').show();
+		        					}
     	                        }]  
         	                }) 
         				},
@@ -181,6 +190,15 @@ Ext.define('MyApp.view.MainPanel', {
 		        						Ext.getStore('ServiceActionTreeStore').proxy.extraParams.topPath=Ext.getCmp('Base').RootName;
 		        						Ext.getStore('ServiceActionTreeStore').load();
 		        						Ext.widget('ServiceActionWindow').show();	
+		        					}
+    	                        },
+    	                        {  
+    	                            text:'mix action',  
+    	                            handler: function(){
+		        						Ext.getCmp('MainPanel').ActionType='teardown';
+		        						Ext.getStore('MixActionSetting').proxy.extraParams.testPath=Ext.getCmp('Base').folderName;
+		        				    	Ext.getStore('MixActionSetting').proxy.extraParams.action='end';
+		        						Ext.widget('MixActionSettingWindow').show();
 		        					}
     	                        }]  
         	                }) 
