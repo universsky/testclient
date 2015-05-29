@@ -197,7 +197,7 @@ Ext.define('MyApp.view.SqlActionSettingWindow', {
 						xtype:'textarea',
 						anchor: '100%',
 						id:'TextAreaSql',
-						height:110,
+						height:180,
 					},
 			   	    {
 			   	    	xtype:'textfield',
@@ -303,26 +303,39 @@ Ext.define('MyApp.view.SqlActionSettingWindow', {
     			    		}
     			    		
     			    	}
-                    	Ext.Ajax.request({
-	        				url:"job/saveTestAction",
-	        				params: { 
-	        					testPath: Ext.getCmp('Base').folderName,
-	        					sqlActionType: Ext.getCmp('MainPanel').ActionType,
-	        					source:Ext.getCmp('ComboSource').getValue(),
-	        					server:Ext.getCmp('TextServer').getValue(),
-	        					port:Ext.getCmp('TextPort').getValue(),
-	        					username:inputuser,
-	        					password:inputpwd,
-	        					database:Ext.getCmp('TextDatabase').getValue(),
-	        					sql:Ext.getCmp('TextAreaSql').getValue()
-	        				},
-	        			    success: function(response, opts) {
-	        			    	Ext.getCmp('SqlActionSettingWindow').close();
-	        			    },
-	        			    failure: function(response, opts) {
-	        			    	Ext.Msg.alert('提示','请求失败');
-	        			    }
-	        			});
+    			    	if(!Ext.getCmp('MainPanel').MixAction){
+    			    		Ext.Ajax.request({
+    	        				url:"job/saveTestAction",
+    	        				params: { 
+    	        					testPath: Ext.getCmp('Base').folderName,
+    	        					sqlActionType: Ext.getCmp('MainPanel').ActionType,
+    	        					source:Ext.getCmp('ComboSource').getValue(),
+    	        					server:Ext.getCmp('TextServer').getValue(),
+    	        					port:Ext.getCmp('TextPort').getValue(),
+    	        					username:inputuser,
+    	        					password:inputpwd,
+    	        					database:Ext.getCmp('TextDatabase').getValue(),
+    	        					sql:Ext.getCmp('TextAreaSql').getValue()
+    	        				},
+    	        			    success: function(response, opts) {
+    	        			    	Ext.getCmp('SqlActionSettingWindow').close();
+    	        			    },
+    	        			    failure: function(response, opts) {
+    	        			    	Ext.Msg.alert('提示','请求失败');
+    	        			    }
+    	        			});
+    			    	}else{
+    			    		var obj={};
+    			    		obj.source=Ext.getCmp('ComboSource').getValue();
+    			    		obj.server=Ext.getCmp('TextServer').getValue();
+    			    		obj.port=Ext.getCmp('TextPort').getValue();
+    			    		obj.username=inputuser;
+    			    		obj.password=inputpwd;
+    			    		obj.database=Ext.getCmp('TextDatabase').getValue();
+    			    		obj.sql=Ext.getCmp('TextAreaSql').getValue();
+    			    		Ext.getCmp('SettingTextField').setValue(JSON.stringify(obj));
+    			    		Ext.getCmp('SqlActionSettingWindow').close();
+    			    	}
                     },
                     icon: 'image/save.png',
                     tooltip: '保存'
@@ -335,63 +348,17 @@ Ext.define('MyApp.view.SqlActionSettingWindow', {
     	        	xtype: 'button',
 	    			//id:'CleanSqlActionBtn',
                     handler: function(button, event) {
-                    	Ext.Ajax.request({
-	        				url:"job/cleanTestAction",
-	        				params: { 
-	        					testPath: Ext.getCmp('Base').folderName,
-	        					sqlActionType: Ext.getCmp('MainPanel').ActionType
-	        				},
-	        			    success: function(response, opts) {
-	        			    	Ext.getCmp('ComboSource').setValue('');
-	        			    	Ext.getCmp('TextServer').setValue('');
-	        			    	Ext.getCmp('TextPort').setValue('');
-	        			    	Ext.ComponentQuery.query('#TextUsername')[0].setValue('');
-	        			    	Ext.ComponentQuery.query('#TextPassword')[0].setValue('');
-	        			    	Ext.ComponentQuery.query('#TextUsername')[1].setValue('');
-	        			    	Ext.ComponentQuery.query('#TextPassword')[1].setValue('');
-	        			    	Ext.getCmp('TextDatabase').setValue('');
-	        			    	Ext.getCmp('TextAreaSql').setValue('');
-	        			    },
-	        			    failure: function(response, opts) {
-	        			    	Ext.Msg.alert('提示','请求失败');
-	        			    }
-	        			});
-                    },
-                    icon: 'image/clean.png',
-                    tooltip: '清空'
-		    	}]
-			}],
-	    	listeners: {
-				show: {
-	                fn: function(window, eOpts){
-	                	Ext.Ajax.request({
-	        				url:"job/getTestAction",
-	        				params: { 
-	        					testPath: Ext.getCmp('Base').folderName,
-	        					sqlActionType: Ext.getCmp('MainPanel').ActionType
-	        				},
-	        			    success: function(response, opts) {
-	        			    	var obj=JSON.parse(response.responseText).obj;
-	        			    	if(obj!=null){
-		        			    	Ext.getCmp('ComboSource').setValue(obj.source);
-		        			    	Ext.getCmp('TextServer').setValue(obj.server);
-		        			    	Ext.getCmp('TextPort').setValue(obj.port);
-		        			    	Ext.getCmp('TextDatabase').setValue(obj.database);
-		        			    	Ext.getCmp('TextAreaSql').setValue(obj.sql);
-		        			    	if(obj.username=='' && obj.password == ""){
-		        			    		Ext.getCmp('AuthenticationType').items.get(4).setValue(true)
-		        			    	}else{
-		        			    		Ext.getCmp('AuthenticationType').items.get(0).setValue(true);
-		        			    	}
-		        			    	if(obj.source=='mysql'){
-		        			    		Ext.ComponentQuery.query('#TextUsername')[1].setValue(obj.username);
-			        			    	Ext.ComponentQuery.query('#TextPassword')[1].setValue(obj.password);
-		        			    	}else if(obj.source=='sql server'){
-		        			    		Ext.ComponentQuery.query('#TextUsername')[0].setValue(obj.username);
-			        			    	Ext.ComponentQuery.query('#TextPassword')[0].setValue(obj.password);
-		        			    	}
-	        			    	}else{
-	        			    		Ext.getCmp('ComboSource').setValue('');
+                    	if(Ext.getCmp('MainPanel').MixAction){
+                    		Ext.getCmp('SqlActionSettingWindow').close();                   		
+                    	}else{
+	                    	Ext.Ajax.request({
+		        				url:"job/cleanTestAction",
+		        				params: { 
+		        					testPath: Ext.getCmp('Base').folderName,
+		        					sqlActionType: Ext.getCmp('MainPanel').ActionType
+		        				},
+		        			    success: function(response, opts) {
+		        			    	Ext.getCmp('ComboSource').setValue('');
 		        			    	Ext.getCmp('TextServer').setValue('');
 		        			    	Ext.getCmp('TextPort').setValue('');
 		        			    	Ext.ComponentQuery.query('#TextUsername')[0].setValue('');
@@ -400,12 +367,64 @@ Ext.define('MyApp.view.SqlActionSettingWindow', {
 		        			    	Ext.ComponentQuery.query('#TextPassword')[1].setValue('');
 		        			    	Ext.getCmp('TextDatabase').setValue('');
 		        			    	Ext.getCmp('TextAreaSql').setValue('');
-	        			    	}
-	        			    },
-	        			    failure: function(response, opts) {
-	        			    	Ext.Msg.alert('提示','请求失败');
-	        			    }
-	        			});
+		        			    },
+		        			    failure: function(response, opts) {
+		        			    	Ext.Msg.alert('提示','请求失败');
+		        			    }
+		        			});
+                    	}
+                    },
+                    icon: 'image/clean.png',
+                    tooltip: '清空'
+		    	}]
+			}],
+	    	listeners: {
+				show: {
+	                fn: function(window, eOpts){
+	                	if(!Ext.getCmp('MainPanel').MixAction){
+	                		Ext.Ajax.request({
+		        				url:"job/getTestAction",
+		        				params: { 
+		        					testPath: Ext.getCmp('Base').folderName,
+		        					sqlActionType: Ext.getCmp('MainPanel').ActionType
+		        				},
+		        			    success: function(response, opts) {
+		        			    	var obj=JSON.parse(response.responseText).obj;
+		        			    	if(obj!=null){
+			        			    	Ext.getCmp('ComboSource').setValue(obj.source);
+			        			    	Ext.getCmp('TextServer').setValue(obj.server);
+			        			    	Ext.getCmp('TextPort').setValue(obj.port);
+			        			    	Ext.getCmp('TextDatabase').setValue(obj.database);
+			        			    	Ext.getCmp('TextAreaSql').setValue(obj.sql);
+			        			    	if(obj.username=='' && obj.password == ""){
+			        			    		Ext.getCmp('AuthenticationType').items.get(4).setValue(true)
+			        			    	}else{
+			        			    		Ext.getCmp('AuthenticationType').items.get(0).setValue(true);
+			        			    	}
+			        			    	if(obj.source=='mysql'){
+			        			    		Ext.ComponentQuery.query('#TextUsername')[1].setValue(obj.username);
+				        			    	Ext.ComponentQuery.query('#TextPassword')[1].setValue(obj.password);
+			        			    	}else if(obj.source=='sql server'){
+			        			    		Ext.ComponentQuery.query('#TextUsername')[0].setValue(obj.username);
+				        			    	Ext.ComponentQuery.query('#TextPassword')[0].setValue(obj.password);
+			        			    	}
+		        			    	}else{
+		        			    		Ext.getCmp('ComboSource').setValue('');
+			        			    	Ext.getCmp('TextServer').setValue('');
+			        			    	Ext.getCmp('TextPort').setValue('');
+			        			    	Ext.ComponentQuery.query('#TextUsername')[0].setValue('');
+			        			    	Ext.ComponentQuery.query('#TextPassword')[0].setValue('');
+			        			    	Ext.ComponentQuery.query('#TextUsername')[1].setValue('');
+			        			    	Ext.ComponentQuery.query('#TextPassword')[1].setValue('');
+			        			    	Ext.getCmp('TextDatabase').setValue('');
+			        			    	Ext.getCmp('TextAreaSql').setValue('');
+		        			    	}
+		        			    },
+		        			    failure: function(response, opts) {
+		        			    	Ext.Msg.alert('提示','请求失败');
+		        			    }
+		        			});
+	                	}
 	                },
 	                scope: me
 	            }
