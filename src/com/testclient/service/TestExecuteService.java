@@ -39,6 +39,8 @@ import com.testclient.enums.TestStatus;
 import com.testclient.factory.JsonObjectMapperFactory;
 import com.testclient.httpmodel.CheckPointItem;
 import com.testclient.httpmodel.Json;
+import com.testclient.httpmodel.MixActionSettingContainer;
+import com.testclient.httpmodel.MixActionSettingInfo;
 import com.testclient.httpmodel.PreConfigItem;
 import com.testclient.httpmodel.ServerItem;
 import com.testclient.httpmodel.ServiceBoundDataItem;
@@ -130,13 +132,15 @@ public class TestExecuteService {
 	}
 	
 	public void setupAction(String testPath,Map requestmap){
-		executeSqlAction(testPath,ActionFileName.setup,requestmap);
+		executeSqlAction(testPath,ActionFileName.setup,requestmap,null);
 		executeServiceAction(testPath,ActionFileName.setup);
+		executeMixAction(testPath, ActionFileName.init, requestmap, null);
 	}
 	
 	public void teardownAction(String testPath,Map requestParas,String response){
 		executeSqlAction(testPath,ActionFileName.teardown,requestParas,response);
 		executeServiceAction(testPath,ActionFileName.teardown);
+		executeMixAction(testPath, ActionFileName.end, requestParas, response);
 	}
 	
 	private void executeServiceAction(String testPath, String actionType){
@@ -150,58 +154,13 @@ public class TestExecuteService {
 			logger.error(e.getClass()+e.getMessage());
 		}
 	}
-	
-	private int executeSqlAction(String testPath, String actionType,Map reqParas){
-		File f=new File(testPath+"/"+actionType);
-		if(f.exists()){
-			try {
-				String sqlactionstr = FileUtils.readFileToString(f, "UTF-8");
-				sqlactionstr = parseText(sqlactionstr,testPath,reqParas);
-				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
-				SqlEntity e = mapper.readValue(sqlactionstr, SqlEntity.class);
-				String source=e.getSource();
-				String server=e.getServer();
-				String port=e.getPort();
-				String username=e.getUsername();
-				String password=e.getPassword();
-				String database=e.getDatabase();
-				String sql=e.getSql();
-				return new JdbcUtils(source, server, port, username, password, database).executeSqlAction(sql);
-			} catch (JsonParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (JsonMappingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return 0;
-	}
-	
+		
 	private int executeSqlAction(String testPath, String actionType,Map reqParas,String response){
 		File f=new File(testPath+"/"+actionType);
 		if(f.exists()){
 			try {
 				String sqlactionstr = FileUtils.readFileToString(f, "UTF-8");
-				sqlactionstr = parseText(sqlactionstr,testPath,reqParas);
-				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
-				SqlEntity e = mapper.readValue(sqlactionstr, SqlEntity.class);
-				String source=e.getSource();
-				String server=e.getServer();
-				String port=e.getPort();
-				String username=e.getUsername();
-				String password=e.getPassword();
-				String database=e.getDatabase();
-				String sql=e.getSql();
-				//resolve string if contains parameter
-				sql = TemplateUtils.getString(sql, reqParas);
-				if(actionType.equalsIgnoreCase(ActionFileName.teardown)){
-					sql=processOutputParameter(testPath, response, sql);
-				}
-				return new JdbcUtils(source, server, port, username, password, database).executeSqlAction(sql);
+				return executeSqlActionFromJson(testPath,actionType,sqlactionstr,reqParas,response);
 			} catch (JsonParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -214,6 +173,50 @@ public class TestExecuteService {
 			}
 		}
 		return 0;
+	}
+	
+	private int executeSqlActionFromJson(String testPath, String actionType, String sqlactionstr, Map reqParas, String response){
+		try{
+			sqlactionstr = parseText(sqlactionstr,testPath,reqParas);
+			ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
+			SqlEntity e = mapper.readValue(sqlactionstr, SqlEntity.class);
+			String source=e.getSource();
+			String server=e.getServer();
+			String port=e.getPort();
+			String username=e.getUsername();
+			String password=e.getPassword();
+			String database=e.getDatabase();
+			String sql=e.getSql();
+			if(actionType.equalsIgnoreCase(ActionFileName.teardown) || actionType.equalsIgnoreCase(ActionFileName.end)){
+				sql=processOutputParameter(testPath, response, sql);
+			}
+			return new JdbcUtils(source, server, port, username, password, database).executeSqlAction(sql);
+		}catch(Exception ex){
+			return 0;
+		}
+	}
+	
+	private void executeMixAction(String testPath, String action, Map reqParas,String response){
+		File f=new File(testPath+"/"+action);
+		try {
+			String settings = FileUtils.readFileToString(f, "UTF-8");
+			settings = parseText(settings,testPath,reqParas);
+			ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
+			MixActionSettingContainer c = mapper.readValue(f, MixActionSettingContainer.class);
+			for(Entry<String,MixActionSettingInfo> entry : c.getMixActionSettings().entrySet()){
+				MixActionSettingInfo info=entry.getValue();
+				String setting=info.getSetting();
+				String type=info.getType();
+				if(type.equalsIgnoreCase("service")){
+					batchTestService.executeTestByPath(setting);
+				}else if(type.equalsIgnoreCase("sql")){
+					executeSqlActionFromJson(testPath,action,setting,reqParas,response);
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public Set<CheckPointItem> getCheckpointsAndResultFromFile(String foldername,Map parameters, String responseinfo, TestResultItem testresult){
@@ -406,6 +409,7 @@ public class TestExecuteService {
 		return response;
 	}
 	
+	//bacuse the function could be used in parsing request parameters,it doesn't include parsing output parameter
 	private String parseText(String val,String path,Map<String,Object> request){
 		try {
 			if(val.contains("[[") && val.contains("]]"))
