@@ -93,14 +93,15 @@ Ext.define('MyApp.view.PreConfigurationWindow', {
 				    text: '设置',
 				    editor: {
 				    	id:'SettingStringTextField',
-                        xtype: 'textfield',
-                        allowBlank:false,
-                    },
-                    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-                    	return value.replace(new RegExp("<","gm"),"&lt;");
-                    }
+                        		xtype: 'textfield',
+                        		allowBlank:false,
+                        		height:100
+                    		    },
+                    		    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+	                    	    return value.replace(new RegExp("<","gm"),"&lt;");
+	                    	}
 				    //editor: Ext.widget('SettingCombo')
-				},
+			},
                 {
                     xtype: 'actioncolumn',
                     flex:1,
