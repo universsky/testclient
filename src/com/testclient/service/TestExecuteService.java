@@ -80,7 +80,7 @@ public class TestExecuteService {
 		Map requestmap =new HashMap();
 		try{
 			String path = request.getParameter("__HiddenView_path");
-	        String looptimes=(String)request.getParameterMap().get(LoopParameterNameInForm.name);
+	        String looptimes=request.getParameter(LoopParameterNameInForm.name);
 	        looptimes=looptimes!=null?looptimes:"1";
 	        String[] loopparas=looptimes.split(SeperatorDefinition.seperator);
 	        looptimes=loopparas[0];
@@ -198,24 +198,26 @@ public class TestExecuteService {
 	
 	private void executeMixAction(String testPath, String action, Map reqParas,String response){
 		File f=new File(testPath+"/"+action);
-		try {
-			String settings = FileUtils.readFileToString(f, "UTF-8");
-			settings = parseText(settings,testPath,reqParas);
-			ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
-			MixActionSettingContainer c = mapper.readValue(f, MixActionSettingContainer.class);
-			for(Entry<String,MixActionSettingInfo> entry : c.getMixActionSettings().entrySet()){
-				MixActionSettingInfo info=entry.getValue();
-				String setting=info.getSetting();
-				String type=info.getType();
-				if(type.equalsIgnoreCase("service")){
-					batchTestService.executeTestByPath(setting);
-				}else if(type.equalsIgnoreCase("sql")){
-					executeSqlActionFromJson(testPath,action,setting,reqParas,response);
+		if(f.exists()){
+			try {
+				String settings = FileUtils.readFileToString(f, "UTF-8");
+				settings = parseText(settings,testPath,reqParas);
+				ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
+				MixActionSettingContainer c = mapper.readValue(f, MixActionSettingContainer.class);
+				for(Entry<String,MixActionSettingInfo> entry : c.getMixActionSettings().entrySet()){
+					MixActionSettingInfo info=entry.getValue();
+					String setting=info.getSetting();
+					String type=info.getType();
+					if(type.equalsIgnoreCase("service")){
+						batchTestService.executeTestByPath(setting);
+					}else if(type.equalsIgnoreCase("sql")){
+						executeSqlActionFromJson(testPath,action,setting,reqParas,response);
+					}
 				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
