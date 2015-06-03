@@ -140,10 +140,12 @@ public class JdbcUtils {
 		if(sqr!=null){
 			ArrayList<String> columns = sqr.getColumnNames();
 			ArrayList<String> row=sqr.getRows().get(Integer.parseInt(rowIndex));
-			for(int i=0;i<columns.size();i++){
-				if(columns.get(i).equalsIgnoreCase(columnLabel)){
-					value = row.get(i);
-					break;
+			if(row!=null){
+				for(int i=0;i<columns.size();i++){
+					if(columns.get(i).equalsIgnoreCase(columnLabel)){
+						value = row.get(i);
+						break;
+					}
 				}
 			}
 		}
