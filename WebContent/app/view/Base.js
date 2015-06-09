@@ -615,27 +615,28 @@ Ext.define('MyApp.view.Base', {
  	},
  	delNode:function(themodel){
  		themodel.remove(false);
-        var thestore=Ext.getStore('StandardTreeStore');
-        var path=themodel.raw.folderName;
-        thestore.proxy.extraParams={
-        	folderName:path
-        };
-        thestore.sync({
-        	success:function(betch,options){
-//        		Ext.Ajax.request( {  
-//					url : 'job/subscribleQueue',
-//				    success : function(response, options) {
-//				    },  
-//				    failure: function(response, opts) {
-//		             	console.log("错误","插入队列失败");
-//		            }
-//				});
-        	},
-            failure:function(betch,options){
-            	Ext.Msg.alert("错误","删除节点失败");
-            	thestore.load();
-            }
-        });
+	        var thestore=Ext.getStore('StandardTreeStore');
+	        var path=themodel.raw.folderName;
+	        thestore.proxy.extraParams={
+	        	folderName:path
+	        };
+	        thestore.sync({
+	        	success:function(betch,options){
+	        		Ext.getCmp('MainContainer').removeAll(false);
+	//        		Ext.Ajax.request( {  
+	//					url : 'job/subscribleQueue',
+	//				    success : function(response, options) {
+	//				    },  
+	//				    failure: function(response, opts) {
+	//		             	console.log("错误","插入队列失败");
+	//		            }
+	//				});
+	        	},
+	            failure:function(betch,options){
+	            	Ext.Msg.alert("错误","删除节点失败");
+	            	thestore.load();
+	            }
+	        });
  	},
  	modifyNode:function(themodel){
  		Ext.getCmp('Base').theNode=themodel;
