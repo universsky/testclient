@@ -62,10 +62,8 @@ Ext.define('MyApp.view.DeletedModeWindow', {
  		        		}else{
  		    				if(target.substring(target.length-4)==='-dir'){
  		    					Ext.widget('PasswordConfirmationWindow').show();
- 		    					Ext.getCmp('MainContainer').removeAll(false);
  		    				}else{
  		    					Ext.getCmp('Base').checkNotRoot(Ext.getCmp('Base').delNode);
-		    					Ext.getCmp('MainContainer').removeAll(false);
  		    				}
  		    				me.close();
  		        		}
