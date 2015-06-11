@@ -746,7 +746,7 @@ Ext.define('MyApp.view.Base', {
     refreshWorkspace: function(){
     	var activetab=Ext.getCmp('EnvTabPanel').getActiveTab();
     	if(activetab.title=="测试配置环境"){
-    		Ext.getStore('StandardTreeStore').proxy.extraParams.rootName=Ext.getCmp('Base').RootName;
+    		Ext.getStore('StandardTreeStore').proxy.extraParams.topPath=Ext.getCmp('Base').RootName;
         	Ext.getStore('StandardTreeStore').load();
     	}else if(activetab.title=="测试运行环境"){
     		Ext.getStore('RunningSet').proxy.extraParams.rootName=Ext.getCmp('Base').RootName;
