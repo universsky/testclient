@@ -78,6 +78,7 @@ public class HttpServletRequestUtils {
 				}
 			}
 		} else if ((text.startsWith("{") && text.endsWith("}"))) {
+			text=text.replace("\\","\\"+"\\");
 			JSONObject json= new JSONObject(text);
 			return json.get(key).toString();
 //			int pos = text.toLowerCase().indexOf(
