@@ -105,7 +105,7 @@ public class BatchTestController {
 			}
 			String iteration=request.getParameter("iteration")==null ? HttpServletRequestUtils.getValueFromRequestInput(body,"iteration") : request.getParameter("iteration");
 			int loop=1;
-			if(null!=iteration && StringUtils.isNumeric(iteration)){
+			if(null!=iteration && !iteration.isEmpty() && StringUtils.isNumeric(iteration)){
 				loop=Integer.parseInt(iteration);
 			}
 			TestExecutionStore store = TestExecutionStore.getInstance();
