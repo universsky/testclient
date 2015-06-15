@@ -88,20 +88,21 @@ public class TestExecuteService {
 	        	requestmap=getRequestParameterMap(request,path);
 	        	for(int i=0;i<Integer.parseInt(looptimes);i++){
 	        		try{
-	        			if(loopparas.length>1)
-			        		Thread.sleep(Integer.parseInt(StringUtils.isNumeric(loopparas[1])?loopparas[1]:"1"));
-		        		
 	        			setupAction(path,requestmap);
 						
-						TestResultItem testresult = getTestResultItem(path,requestmap);
-						if(!testresult.getResult().equals(TestStatus.exception)){
-							getCheckpointsAndResultFromFile(path, requestmap, testresult.getResponseInfo(),testresult);
-							j.setSuccess(true);
-						}else{
-							j.setMsg("执行异常：\n" + testresult.getComment());
-							j.setSuccess(false);
-						}
-						j.setObj(testresult);
+					TestResultItem testresult = getTestResultItem(path,requestmap);
+						
+					if(loopparas.length>1)
+			        		Thread.sleep(Integer.parseInt(StringUtils.isNumeric(loopparas[1])?loopparas[1]:"1"));
+		        		
+					if(!testresult.getResult().equals(TestStatus.exception)){
+						getCheckpointsAndResultFromFile(path, requestmap, testresult.getResponseInfo(),testresult);
+						j.setSuccess(true);
+					}else{
+						j.setMsg("执行异常：\n" + testresult.getComment());
+						j.setSuccess(false);
+					}
+					j.setObj(testresult);
 		        	}catch(Exception e){
 		        		j.setMsg(e.getClass()+e.getMessage());
 		        		j.setSuccess(false);
