@@ -326,7 +326,7 @@ public class BatchTestService {
 			File f=new File(dirPath+"/"+HistoryFolderName.folderName);
 			if(f.exists() && f.isDirectory()){
 				String filename=getRecentTest(f);
-				if(filename.isEmpty()){
+				if(!filename.isEmpty()){
 					String name=StringUtils.substringAfterLast(filename, "/");
 					if(name.endsWith("-leaf")){
 						name=StringUtils.substringBeforeLast(name, "-leaf");
