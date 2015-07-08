@@ -321,11 +321,18 @@ Ext.define('MyApp.view.Base', {
 							    dataIndex: 'name',
 							    text: '运行集合',
 							},
-				            {
+				            		{
 							    xtype: 'gridcolumn',
 							    dataIndex: 'time',
 							    text: '创建/修改时间',
-							    flex: 58
+							    flex: 58,
+							    renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+							    	if(value!=""){
+							    		var time=value.split(" ")[1];
+							    		value=value.split(" ")[0]+' '+time.substring(0,2)+':'+time.substring(2,4)+':'+time.substring(4,6);
+							    	}
+							    	return value;
+							    }
 							},
 							{
 							    xtype: 'gridcolumn',
