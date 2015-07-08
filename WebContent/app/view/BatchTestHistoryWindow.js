@@ -38,7 +38,14 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
 							xtype: 'gridcolumn',
 							flex:5,
 							dataIndex: 'time',
-							text: '开始时间'
+							text: '开始时间',
+							renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+							    	if(value!=""){
+							    		var time=value.split(" ")[1];
+							    		value=value.split(" ")[0]+' '+time.substring(0,2)+':'+time.substring(3,5)+':'+time.substring(6,8);
+							    	}
+							    	return value;
+							}
 						},
 						{
 						    xtype: 'actioncolumn',
@@ -133,7 +140,14 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
 						xtype: 'gridcolumn',
 						flex:12,
 						dataIndex: 'time',
-						text: '开始时间'
+						text: '开始时间',
+						renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+						    	if(value!=""){
+						    		var time=value.split(" ")[1];
+						    		value=value.split(" ")[0]+' '+time.substring(0,2)+':'+time.substring(3,5)+':'+time.substring(6,8)+' '+value.split(" ")[2];
+						    	}
+						    	return value;
+						}
 					},
 					{
 						xtype: 'gridcolumn',
