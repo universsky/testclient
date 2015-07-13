@@ -45,7 +45,7 @@ Ext.define('MyApp.view.ServiceActionWindow', {
 		                		loadMask: true,
 								url : 'job/getTreeChildNodes',
 								params : {  
-									topPath : node.raw.folderName,
+									topPath : Ext.getCmp('Base').RootName,
 									node : node.raw.folderName
 								},
 							    success : function(response, options) {
