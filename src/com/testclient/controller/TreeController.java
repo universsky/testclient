@@ -146,10 +146,7 @@ public class TreeController {
 	@RequestMapping(value="/modifyNode", method=RequestMethod.POST )
 	@ResponseBody
 	public Json modifyNode(@RequestParam("folderName")String  foldername,@RequestParam("oldFolderName")String  oldFoldername) {
-		System.out.println("modifyNode");
-		System.out.println(oldFoldername);
 		Json j=new Json();
-		MyFileUtils.makeDir(oldFoldername);
 		File path=new File(oldFoldername);
 		path.renameTo(new File(foldername));
 		j.setSuccess(true);
