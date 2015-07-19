@@ -883,29 +883,25 @@ public class TestExecuteService {
 		return "Ext.getCmp('Base').PayAction(\""+auth+"\",\""+onum+"\",\""+paymenttitle+"\","+orderamount+",\""+callbackhost+"\",\""+paymentdomain+"\",7)";
 	}
 	
-	public Map<String,String> loadEnv(String foldername){
+	public Map<String,String> loadEnv(String testPath){
 		Map<String,String> m=new HashMap<String,String>();
-		File f=new File(FileNameUtils.getEnvFilePath(foldername));
+		File f=new File(FileNameUtils.getEnvFilePath(testPath));
 		while(true){
 			if(f.exists()){
 				try {
 					String fs=FileUtils.readFileToString(f);
 					if(!fs.isEmpty()){
-						String[] fa=fs.split("\n");
-						for(String s:fa){
+						String[] arr=fs.split("\n");
+						for(String s:arr){
 							String[] kv=s.split("=");
-							if(kv.length==2){
-								if(!m.containsKey(kv[0])){
-									m.put(kv[0], kv[1]);
-								}
-							}else
-							if(kv.length==1){
-								if(!m.containsKey(kv[0])){
-									m.put(kv[0], "");
-								}
-							}else if(kv.length>2){
-								if(!m.containsKey(kv[0])){
-									m.put(kv[0],StringUtils.substringAfter(s, kv[0]+"="));
+							String k=kv[0].trim();
+							if(!m.containsKey(k)){
+								if(kv.length==2){
+									m.put(k, kv[1].trim());
+								}else if(kv.length==1){
+									m.put(k, "");
+								}else if(kv.length>2){
+									m.put(k,StringUtils.substringAfter(s, "=").trim());
 								}
 							}
 						}
@@ -916,7 +912,7 @@ public class TestExecuteService {
 				}
 			}
 			String parentFileName=f.getParentFile().getName();
-			if(!parentFileName.endsWith("-leaf") && !parentFileName.endsWith("-t") && !parentFileName.endsWith("-dir")){
+			if(StringUtils.substringAfterLast(parentFileName, "-").length()==1){
 				break;
 			}else
 				f=new File(FileNameUtils.getEnvFilePath(f.getParentFile().getParent()));
