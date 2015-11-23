@@ -1,4 +1,4 @@
-package com.testclient.service;
+package com.alipics.testassets.testclient.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,19 +8,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Service;
 
-import com.testclient.enums.BatchTestingFolderName;
-import com.testclient.enums.SeperatorDefinition;
-import com.testclient.enums.TimeFormatDefiniation;
-import com.testclient.factory.JsonObjectMapperFactory;
-import com.testclient.httpmodel.BatchRunItem;
-import com.testclient.httpmodel.BatchTestItem;
-import com.testclient.httpmodel.DataGridJson;
-import com.testclient.httpmodel.Json;
-import com.testclient.httpmodel.TestResultItem;
+import com.alipics.testassets.testclient.enums.BatchTestingFolderName;
+import com.alipics.testassets.testclient.enums.SeperatorDefinition;
+import com.alipics.testassets.testclient.enums.TimeFormatDefiniation;
+import com.alipics.testassets.testclient.factory.JsonObjectMapperFactory;
+import com.alipics.testassets.testclient.httpmodel.BatchRunItem;
+import com.alipics.testassets.testclient.httpmodel.BatchTestItem;
+import com.alipics.testassets.testclient.httpmodel.BatchTestReport;
+import com.alipics.testassets.testclient.httpmodel.DataGridJson;
+import com.alipics.testassets.testclient.httpmodel.Json;
+import com.alipics.testassets.testclient.httpmodel.TestResultItem;
 
 
 @Service("batchTestHistoryService")
@@ -95,7 +99,9 @@ public class BatchTestHistoryService {
 	            bti.setName(runinfo.split(seperator)[0]);
 	            bti.setTime(runinfo.split(seperator)[1]);
 	            bti.setDuration(runinfo.split(seperator)[2]);
-	            bti.setStatus(runinfo.split(seperator)[3]);
+	            String status=runinfo.split(seperator)[3];
+	            status=StringUtils.substringBeforeLast(status, ".");
+	            bti.setStatus(status);
 	            row.add(bti);
 			}
 		}
@@ -143,4 +149,62 @@ public class BatchTestHistoryService {
 		return j;		
 	}
 	
+	public List<BatchTestReport> getBatchTestReport(String path){
+		List<BatchTestReport> list=new ArrayList<BatchTestReport>();
+		File f=new File(path);
+		if(f.exists()){
+			for(File test : f.listFiles()){
+				BatchTestReport r=new BatchTestReport();
+				String filename=test.getName();
+				String[] arr=filename.split("@");
+				String name=arr[0];
+				String time=arr[1];
+				String request="",response="";
+				time=time.replace(time.split(" ")[1], time.split(" ")[1].replaceAll("-", ":"));
+				String duration=arr[2];
+				String result=StringUtils.substringBefore(arr[3], ".");
+				String stuatus="";
+				if(result.equalsIgnoreCase("p")){
+					stuatus="通过";
+				}else if(result.equalsIgnoreCase("f")){
+					stuatus="失败";
+				}else if(result.equalsIgnoreCase("i")){
+					stuatus="无检查点";
+				}else if(result.equalsIgnoreCase("r")){
+					stuatus="待测";
+				}else if(result.equalsIgnoreCase("e")){
+					stuatus="配置错误";
+				}
+				try {
+					ObjectMapper mapper = JsonObjectMapperFactory.getObjectMapper();
+					String content=FileUtils.readFileToString(test);
+					File history=new File(content.replace(">", "/"));
+					if(history.exists() && history.isFile()){
+						TestResultItem tri = mapper.readValue(history, TestResultItem.class);
+						request=tri.getRequestInfo();
+						String removedtext=StringUtils.substringBetween(request, "[request headers]:", "[request body]:");
+						request=request.replace(removedtext, "").replace("[request headers]:", "");
+						if(!result.equalsIgnoreCase("e")){
+							response=tri.getResponseInfo();
+						}else{
+							response=tri.getComment();
+						}
+						response=StringUtils.substringAfter(response, "[body]:");
+					}
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					request=response="";
+				} 
+				r.setName(name);
+				r.setTime(time);
+				r.setDuration(duration);
+				r.setResult(stuatus);
+				r.setRequest(request);
+				r.setResponse(response);
+				list.add(r);
+			}
+		}
+		return list;
+	}
 }
