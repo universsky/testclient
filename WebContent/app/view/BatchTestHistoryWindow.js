@@ -2,8 +2,8 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
     extend: 'Ext.window.Window',
     alias: 'widget.BatchTestHistoryWindow',
     id: 'BatchTestHistory',
-    height: 700,
-    width: 1450,
+    height: 640,
+    width: 1250,
     modal:true,
     layout: {
         type: 'hbox',
@@ -40,12 +40,56 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
 							dataIndex: 'time',
 							text: '开始时间',
 							renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-							    	if(value!=""){
-							    		var time=value.split(" ")[1];
-							    		value=value.split(" ")[0]+' '+time.substring(0,2)+':'+time.substring(3,5)+':'+time.substring(6,8);
-							    	}
-							    	return value;
-							}
+						    	if(value!=""){
+						    		var time=value.split(" ")[1];
+						    		value=value.split(" ")[0]+' '+time.substring(0,2)+':'+time.substring(3,5)+':'+time.substring(6,8);
+						    	}
+						    	return value;
+						    }
+						},
+						{
+							xtype: 'actioncolumn',
+							flex:1,
+						    	text: '导出',
+						    	items: [
+						        {
+						        	handler: function(view, rowIndex, colIndex, item, e, record, row) {
+						        		var lm = new Ext.LoadMask(Ext.getCmp('BatchTestHistory'), { 
+                                						msg : '导出中。。。', 
+                                						removeMask : true
+                                					});
+						        		lm.show();
+						        		if (!Ext.fly('frmDummy')) {  
+						        			lm.hide();
+					        				var frm = document.createElement('form');  
+					        				frm.id = 'frmDummy';  
+					        				frm.name = frm.id;  
+					        				frm.className = 'x-hidden'; 
+					        				document.body.appendChild(frm); 
+						        		}
+                                    					Ext.Ajax.request( {  
+										url : 'job/exportBatchTestToExcel?testPath='+Ext.getCmp('Base').folderName+'&batchTest='+record.data.time.replace(/-/g,'').replace(/ /g,''),
+//											params : {
+//											},  
+										form: Ext.fly('frmDummy'),  
+										isUpload: true, 
+										success : function(response, options) {
+										    	lm.hide();
+										    	var text=response.responseText.substring(0,20);
+										    	if(Ext.String.tartsWith(text,'HTTP Status 500')){
+										    		Ext.Msg.alert("错误",response.responseText);
+										    	}
+										},  
+										failure: function(response, opts) {
+										    	lm.hide();
+								             		Ext.Msg.alert("错误","导出报告到Excel失败");
+								            		}
+										}); 
+                                    		},
+                                    		icon: 'image/export.png',
+                                    		tooltip: '导出到Excel'
+						}
+						]
 						},
 						{
 						    xtype: 'actioncolumn',
@@ -65,10 +109,11 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
                                         		}); 
                                         		lm.show();
                                             	Ext.Ajax.request( {  
-													url : 'job/deleteBatchHistory',
-													params : {
-														batchRunPath : record.raw.path
-													},  
+													url : 'job/deleteBatchHistory?batchRunPath='+record.raw.path,
+													method:'POST',
+//													params : {
+//														batchRunPath : record.raw.path
+//													},  
 												    success : function(response, options) {
 												    	lm.hide();
 												    	Ext.getStore('BatchRun').reload();
@@ -95,10 +140,11 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
 					listeners: {
 						itemdblclick : function( that, record, item, index, e, eOpts ){
 							Ext.Ajax.request( {  
-								url : 'job/getTestRunInfo',
-								params : {
-									batchRunPath : record.raw.path
-								},  
+								url : 'job/getTestRunInfo?batchRunPath='+record.raw.path,
+								method:'GET',
+//								params : {
+//									batchRunPath : record.raw.path
+//								},  
 							    success : function(response, options) {
 							    	var testhistories=JSON.parse(response.responseText).rows;
 							    	Ext.getStore('TestItem').loadData(testhistories);
@@ -142,12 +188,12 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
 						dataIndex: 'time',
 						text: '开始时间',
 						renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-						    	if(value!=""){
-						    		var time=value.split(" ")[1];
-						    		value=value.split(" ")[0]+' '+time.substring(0,2)+':'+time.substring(3,5)+':'+time.substring(6,8)+' '+value.split(" ")[2];
-						    	}
-						    	return value;
-						}
+					    	if(value!=""){
+					    		var time=value.split(" ")[1];
+					    		value=value.split(" ")[0]+' '+time.substring(0,2)+':'+time.substring(3,5)+':'+time.substring(6,8)+' '+value.split(" ")[2];
+					    	}
+					    	return value;
+					    }
 					},
 					{
 						xtype: 'gridcolumn',
@@ -180,10 +226,11 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
 					listeners: {
 						itemdblclick : function( that, record, item, index, e, eOpts ){
 							Ext.Ajax.request( {  
-								url : 'job/getTestResultDetailInfo',
-								params : {
-									testRunPath : record.raw.path
-								},  
+								url : 'job/getTestResultDetailInfo?testRunPath='+record.raw.path,
+								method:'GET',
+//								params : {
+//									testRunPath : record.raw.path
+//								},  
 							    success : function(response, options) {
 							    	var json=JSON.parse(response.responseText);
 							    	if(json.success){
@@ -202,16 +249,17 @@ Ext.define('MyApp.view.BatchTestHistoryWindow', {
 							    		if(Ext.String.endsWith(json.msg,"不存在或被删除")){
 							    			Ext.Msg.alert("提示",json.msg+",将删除该记录？",	function(){
     	        								Ext.Ajax.request( {
-    	        									url : 'job/deleteTestResultDetailInfoInBatchHistory',  
-    	        									params : {  
-    	        										testRunPath : record.raw.path
-    	        									},
+    	        									url : 'job/deleteTestResultDetailInfoInBatchHistory?testRunPath='+record.raw.path,  
+//    	        									params : {  
+//    	        										testRunPath : record.raw.path
+//    	        									},
     	        								    success : function(response, options) {
-    	        								    	Ext.Ajax.request( {  
-    	        											url : 'job/getTestRunInfo',
-    	        											params : {
-    	        												batchRunPath : record.raw.path.substring(0,record.raw.path.indexOf(record.raw.name)-1)
-    	        											},  
+    	        								    	Ext.Ajax.request( { 
+    	        								    		url : 'job/getTestRunInfo?batchRunPath='+record.raw.path.substring(0,record.raw.path.indexOf(record.raw.name)-1),
+    	        											method:'GET',
+//    	        											params : {
+//    	        												batchRunPath : record.raw.path.substring(0,record.raw.path.indexOf(record.raw.name)-1)
+//    	        											},  
     	        										    success : function(response, options) {
     	        										    	var testhistories=JSON.parse(response.responseText).rows;
     	        										    	Ext.getStore('TestItem').loadData(testhistories);
